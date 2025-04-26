@@ -2,7 +2,7 @@
   "development": {
     "username": "postgres",
     "password": "Mobakoknipu1",
-    "database": "TUBESPBP",
+    "database": "tubespbp",
     "host": "127.0.0.1",
     "dialect": "postgres"
   },
