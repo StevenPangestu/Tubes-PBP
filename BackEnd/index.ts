@@ -19,18 +19,6 @@ const sequelize = new Sequelize({
 const app = express();
 app.use(json());
 
-// Logging middleware
-app.use((req, res, next) => {
-    console.log(
-        "Request received at",
-        new Date(),
-        req.path,
-        req.params,
-        req.body
-    );
-    next();
-});
-
 app.use((req, res, next) => {
     res.locals.startExecution = Date.now();
     next();
@@ -285,12 +273,6 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     res.status(500).json({ message: err.message });
 });
 
-// Request finished log
-app.use((req, res, next) => {
-    console.log("Request Finished");
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`App started at port ${PORT}`);
-});
+app.listen(3000, () => {
+    console.log("App started at port 3000");
+})
