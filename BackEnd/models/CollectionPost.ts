@@ -1,23 +1,22 @@
 import {
-  Table,
+  BelongsTo,
   Column,
   DataType,
-  Model,
-  AllowNull,
   ForeignKey,
-  BelongsTo,
+  Model,
+  Table
 } from "sequelize-typescript";
 
 import { v4 } from "uuid";
 import { Collection } from "./Collection";
-import { Post } from "./Post";  
+import { Post } from "./Post";
 
 @Table({
   tableName: "CollectionPost",
   timestamps: true,
   createdAt: "createdAt",
 })
-export class ColletionPost extends Model {
+export class CollectionPost extends Model {
   //collection_post_id
   @Column({
     primaryKey: true,
