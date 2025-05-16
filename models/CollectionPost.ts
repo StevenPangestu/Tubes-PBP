@@ -1,16 +1,15 @@
 import {
-  Table,
+  BelongsTo,
   Column,
   DataType,
-  Model,
-  AllowNull,
   ForeignKey,
-  BelongsTo,
+  Model,
+  Table
 } from "sequelize-typescript";
 
 import { v4 } from "uuid";
 import { Collection } from "./Collection";
-import { Post } from "./Post";  
+import { Post } from "./Post";
 
 @Table({
   tableName: "CollectionPost",
