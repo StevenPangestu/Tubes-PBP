@@ -20,7 +20,7 @@ module.exports = {
         onDelete: "CASCADE",
       },
       image_url: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
       },
       caption: {

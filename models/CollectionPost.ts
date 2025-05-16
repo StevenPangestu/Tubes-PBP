@@ -17,12 +17,12 @@ import { Post } from "./Post";
   timestamps: true,
   createdAt: "createdAt",
 })
-export class ColletionPost extends Model {
+export class CollectionPost extends Model {
   //collection_post_id
   @Column({
     primaryKey: true,
     type: DataType.UUID,
-    defaultValue: v4(),
+    defaultValue: () => v4(),
   })
   declare collection_post_id: string;
 

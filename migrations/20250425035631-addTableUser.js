@@ -18,7 +18,7 @@
           allowNull:false
         },
         password : {
-          type:Sequelize.DATE,
+          type:Sequelize.STRING,
           allowNull:false,
         },
         profile_picture:{

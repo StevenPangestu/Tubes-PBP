@@ -10,22 +10,20 @@ import {
 
 import { v4 } from "uuid";
 import { User } from "./User";
-import { Post } from "./Post";
 
 @Table({
-  tableName: "Comment",
+  tableName: "Collection",
   timestamps: true,
   createdAt: "createdAt",
-  updatedAt: "updatedAt"
 })
-export class Comment extends Model {
-  //comment_id
+export class Collection extends Model {
+  //collection_id
   @Column({
     primaryKey: true,
     type: DataType.UUID,
-    defaultValue: v4(),
+    defaultValue: () => v4(),
   })
-  declare comment_id: string;
+  declare collection_id: string;
 
   //user_id (FK)
   @ForeignKey(() => User)
@@ -39,34 +37,16 @@ export class Comment extends Model {
   @BelongsTo(() => User)
   declare user: User;
 
-  //post_id (FK)
-  @ForeignKey(() => Post)
-  @Column({
-    type: DataType.UUID,
-    field: "post_id",
-    allowNull: false,
-  })
-  declare post_id: string;
-
-  @BelongsTo(() => Post)
-  declare post: Post;
-
-  //content
+  //collection_name
   @Column({
     type: DataType.STRING,
     allowNull: false,
   })
-  declare content: string;
+  declare collection_name: string;
 
   //createdAt
   @Column({
     type: DataType.DATE,
   })
   declare createdAt: Date;
-
-  //updatedAt
-  @Column({
-    type: DataType.DATE,
-  })
-  declare updatedAt: Date;
 }
