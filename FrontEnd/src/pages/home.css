@@ -1,0 +1,65 @@
+.home-container {
+  background-color: #f9f9f9;
+  min-height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 16px !important;
+}
+
+.logo {
+  color: #ff5700;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.search-bar {
+  flex-grow: 1;
+  max-width: 500px;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.posts-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .posts-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .app-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .search-bar {
+    width: 100%;
+  }
+}
+
+.nav-actions .MuiAvatar-root {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.nav-actions .MuiAvatar-root:hover {
+  transform: scale(1.1);
+}

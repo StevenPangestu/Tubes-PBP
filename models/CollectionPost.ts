@@ -1,43 +1,41 @@
 import {
-  Table,
+  BelongsTo,
   Column,
   DataType,
-  Model,
-  AllowNull,
   ForeignKey,
-  BelongsTo,
+  Model,
+  Table
 } from "sequelize-typescript";
 
 import { v4 } from "uuid";
-import { User } from "./User";
+import { Collection } from "./Collection";
 import { Post } from "./Post";
 
 @Table({
-  tableName: "Comment",
+  tableName: "CollectionPost",
   timestamps: true,
   createdAt: "createdAt",
-  updatedAt: "updatedAt"
 })
-export class Comment extends Model {
-  //comment_id
+export class CollectionPost extends Model {
+  //collection_post_id
   @Column({
     primaryKey: true,
     type: DataType.UUID,
-    defaultValue: v4(),
+    defaultValue: () => v4(),
   })
-  declare comment_id: string;
+  declare collection_post_id: string;
 
-  //user_id (FK)
-  @ForeignKey(() => User)
+  //collection_id (FK)
+  @ForeignKey(() => Collection)
   @Column({
     type: DataType.UUID,
-    field: "user_id",
+    field: "collection_id",
     allowNull: false,
   })
-  declare user_id: string;
+  declare collection_id: string;
 
-  @BelongsTo(() => User)
-  declare user: User;
+  @BelongsTo(() => Collection)
+  declare collection: Collection;
 
   //post_id (FK)
   @ForeignKey(() => Post)
@@ -51,22 +49,9 @@ export class Comment extends Model {
   @BelongsTo(() => Post)
   declare post: Post;
 
-  //content
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-  })
-  declare content: string;
-
   //createdAt
   @Column({
     type: DataType.DATE,
   })
   declare createdAt: Date;
-
-  //updatedAt
-  @Column({
-    type: DataType.DATE,
-  })
-  declare updatedAt: Date;
 }

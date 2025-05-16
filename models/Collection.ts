@@ -8,21 +8,22 @@ import {
   BelongsTo,
 } from "sequelize-typescript";
 
-//  import { v4 } from "uuid";
+import { v4 } from "uuid";
 import { User } from "./User";
 
 @Table({
-  tableName: "Session",
+  tableName: "Collection",
   timestamps: true,
   createdAt: "createdAt",
 })
-export class Session extends Model {
-  //token
+export class Collection extends Model {
+  //collection_id
   @Column({
     primaryKey: true,
-    type: DataType.UUID
+    type: DataType.UUID,
+    defaultValue: () => v4(),
   })
-  declare token: string;
+  declare collection_id: string;
 
   //user_id (FK)
   @ForeignKey(() => User)
@@ -35,11 +36,17 @@ export class Session extends Model {
 
   @BelongsTo(() => User)
   declare user: User;
- 
+
+  //collection_name
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  declare collection_name: string;
+
   //createdAt
   @Column({
     type: DataType.DATE,
   })
   declare createdAt: Date;
-
 }

@@ -22,7 +22,7 @@ import {
     @Column({
       primaryKey: true,
       type: DataType.UUID,
-      defaultValue: v4(),
+      defaultValue: () => v4(),
     })
     declare like_id: string;
   
