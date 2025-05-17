@@ -1,14 +1,16 @@
+import cors from "cors";
 import express from "express";
 import path from "path";
-import cors from "cors";
 
 import authRoutes from "./routes/authRoutes";
-import postRoutes from "./routes/postRoutes";
 import categoryRoutes from './routes/categoryRoutes';
+import collectionRoutes from "./routes/collectionRoutes";
+import commentRoutes from "./routes/commentRoute";
+import postRoutes from "./routes/postRoutes";
 import userRoutes from "./routes/userRoutes";
 
 import { authenticate } from "./middlewares/authMiddleware";
-import { sequelize, Category } from '../models';
+import { Category, sequelize } from './models';
 
 const app = express();
 
@@ -29,6 +31,8 @@ app.use("/users", userRoutes);
 // wajib auth
 app.use("/posts", authenticate, postRoutes); // create, update, dll
 app.use("/users/profile", authenticate);    // hanya user login bisa akses profil sendiri
+app.use("/collections", authenticate, collectionRoutes)
+app.use("/", authenticate, commentRoutes); // create, update, dll
 
 sequelize.sync().then(async () => {
   const count = await Category.count();
@@ -37,7 +41,7 @@ sequelize.sync().then(async () => {
       { category_name: "Funny" },
       { category_name: "Animals" },
       { category_name: "Sports" },
-    ]);    
+    ]);
     console.log("Dummy categories inserted");
   }
 

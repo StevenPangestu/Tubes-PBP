@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 
 declare global {
   namespace Express {
@@ -8,8 +8,8 @@ declare global {
   }
 }
 
-import { Session } from "../../models/Session";
-import { User } from "../../models/User";
+import { Session } from "../models/Session";
+import { User } from "../models/User";
 
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {

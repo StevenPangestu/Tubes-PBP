@@ -1,18 +1,18 @@
-import { useEffect, useState } from 'react';
-import PostCard from '../components/postCard';
-import './home.css';
-import { Post, User } from '../types';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { Add, Logout, Search } from '@mui/icons-material';
 import {
   AppBar,
-  Toolbar,
-  TextField,
-  IconButton,
   Avatar,
   Button,
+  IconButton,
+  TextField,
+  Toolbar,
 } from '@mui/material';
-import { Search, Add, Logout } from '@mui/icons-material';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import PostCard from '../components/postCard';
+import { Post, User } from '../types';
+import './home.css';
 
 const Home = () => {
   const navigate = useNavigate();

@@ -1,16 +1,16 @@
 import {
-  Table,
+  BelongsTo,
   Column,
   DataType,
-  Model,
-  AllowNull,
   ForeignKey,
-  BelongsTo,
+  HasMany,
+  Model,
+  Table
 } from "sequelize-typescript";
 
 import { v4 } from "uuid";
-import { User } from "./User";
 import { Post } from "./Post";
+import { User } from "./User";
 
 @Table({
   tableName: "Comment",
@@ -69,4 +69,17 @@ export class Comment extends Model {
     type: DataType.DATE,
   })
   declare updatedAt: Date;
+
+  @ForeignKey(() => Comment)
+  @Column({
+    type: DataType.UUID,
+    allowNull: true,
+  })
+  declare parent_id: string;
+
+  @BelongsTo(() => Comment, 'parent_id')
+  declare parent: Comment;
+
+  @HasMany(() => Comment, 'parent_id')
+  declare replies: Comment[];
 }

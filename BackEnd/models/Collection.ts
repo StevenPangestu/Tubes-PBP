@@ -1,14 +1,16 @@
 import {
-  Table,
+  BelongsTo,
+  BelongsToMany,
   Column,
   DataType,
-  Model,
-  AllowNull,
   ForeignKey,
-  BelongsTo,
+  Model,
+  Table
 } from "sequelize-typescript";
 
 import { v4 } from "uuid";
+import { CollectionPost } from "./CollectionPost";
+import { Post } from "./Post";
 import { User } from "./User";
 
 @Table({
@@ -49,4 +51,11 @@ export class Collection extends Model {
     type: DataType.DATE,
   })
   declare createdAt: Date;
+
+  @BelongsToMany(() => Post, {
+    through: () => CollectionPost,
+    foreignKey: 'collection_id',
+    otherKey: 'post_id'
+  })
+  declare posts: Post[];
 }

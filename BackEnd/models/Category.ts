@@ -1,9 +1,9 @@
 import {
-  Table,
   Column,
+  CreatedAt,
   DataType,
   Model,
-  CreatedAt,
+  Table,
   UpdatedAt,
 } from "sequelize-typescript";
 import { v4 } from "uuid";

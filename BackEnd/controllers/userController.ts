@@ -1,9 +1,9 @@
+import { Request, Response } from "express";
 import fs from 'fs';
 import path from 'path';
-import { Request, Response } from "express";
-import { User } from "../../models/User";
-import { Post } from "../../models/Post";
-import { Category } from "../../models/Category";
+import { Category } from "../models/Category";
+import { Post } from "../models/Post";
+import { User } from "../models/User";
 import { formatProfilePictureUrl } from './formatUrl';
 
 export const getProfile = async (req: Request, res: Response) => {

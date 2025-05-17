@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { User } from "../../models/User";
-import { Session } from "../../models/Session";
-import { hashPassword, comparePassword } from "./hash";
 import { v4 as uuidv4 } from "uuid";
+import { Session } from "../models/Session";
+import { User } from "../models/User";
+import { comparePassword, hashPassword } from "./hash";
 
 export const register = async (req: Request, res: Response) => {
   try {

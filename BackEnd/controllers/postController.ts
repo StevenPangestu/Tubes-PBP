@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { Post } from "../../models/Post";
-import { User } from "../../models/User";
-import { Category } from "../../models/Category";
 import { v4 as uuidv4 } from "uuid";
+import { Category } from "../models/Category";
+import { Post } from "../models/Post";
+import { User } from "../models/User";
 
 // GET /posts
 export const getAllPosts = async (req: Request, res: Response) => {

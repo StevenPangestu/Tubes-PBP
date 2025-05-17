@@ -29,18 +29,28 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
+      parent_id: {
+        type: Sequelize.UUID,
+        allowNull: true,
+        references: {
+          model: "Comment",
+          key: "comment_id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
+      },
       content: {
         type: Sequelize.STRING,
-        allowNull: false, 
+        allowNull: false,
       },
       createdAt: {
         type: Sequelize.DATE,
-        allowNull: false, 
+        allowNull: false,
         defaultValue: Sequelize.NOW,
       },
       updatedAt: {
         type: Sequelize.DATE,
-        allowNull: false, 
+        allowNull: false,
         defaultValue: Sequelize.NOW,
       },
     });
