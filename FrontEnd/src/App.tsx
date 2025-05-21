@@ -8,6 +8,8 @@ import Login from './pages/login';
 import Profile from './pages/profile';
 import Register from './pages/register';
 import SavePost from './pages/save';
+import ViewCollections from './pages/viewCollections';
+import ViewEachCollections from './pages/viewEachCollections';
 
 function App() {
   return (
@@ -17,7 +19,22 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/home" element={<Home />} />
 
-        {/* Add new routes for collections */}
+        {/* Add new routes for collections, melihat semua collections */}
+        <Route path="/collections" element ={
+          <PrivateRoute>
+            <ViewCollections />
+          </PrivateRoute>
+        } />
+
+        {/* melihat collection tertentu */}
+        <Route path="/collections/:collectionId" element={
+          <PrivateRoute>
+            <ViewEachCollections />
+          </PrivateRoute>
+        } />
+
+        {/* Add new route for creating a collection */}
+
         <Route path="/collections/create" element={
           <PrivateRoute>
             <CreateCollection />

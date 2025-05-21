@@ -27,11 +27,11 @@ export const createComment = async (req: Request, res: Response) => {
 
 export const getPostComments = async (req: Request, res: Response) => {
     try {
-        const { postId } = req.params;
+        const { idPost } = req.params;
 
         const comments = await Comment.findAll({
             where: {
-                post_id: postId,
+                post_id: idPost,
                 parent_id: null // Get only parent comments
             },
             include: [

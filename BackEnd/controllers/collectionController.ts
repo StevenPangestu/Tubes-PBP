@@ -1,55 +1,68 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { Collection, Post, sequelize } from '../models';
+import { Collection, CollectionPost, Post, User, sequelize } from '../models';
 
 export const getAllCollections = async (req: Request, res: Response) => {
     try {
         const user = res.locals.user;
         const collections = await Collection.findAll({
             where: { user_id: user.user_id },
-            include: [{
-                model: Post,
-                through: { attributes: [] },
-            }],
-            attributes: {
-                include: [
-                    [sequelize.literal(`(
+            attributes: [
+                'collection_id',
+                'user_id',
+                'collection_name',
+                'createdAt',
+                [
+                    sequelize.literal(`(
                         SELECT COUNT(*)
-                        FROM "collection_posts"
-                        WHERE "collection_posts"."collection_id" = "Collection"."collection_id"
-                    )`), 'posts_count']
+                        FROM "CollectionPost"
+                        WHERE "CollectionPost"."collection_id" = "Collection"."collection_id"
+                    )`),
+                    'posts_count'
                 ]
-            },
-            group: ['Collection.collection_id', 'posts.post_id']
+            ],
+            group: ['Collection.collection_id'],
+            order: [['createdAt', 'DESC']]
         });
 
         res.json(collections);
     } catch (error) {
         console.error('Error fetching collections:', error);
-        res.status(500).json({ message: 'Failed to fetch collections', error });
+        res.status(500).json({
+            message: 'Failed to fetch collections',
+            error
+        });
     }
 };
 
 export const createCollection = async (req: Request, res: Response) => {
     try {
         const user = res.locals.user;
-        const { collection_name } = req.body;
+        const { collection_name } = req.body;  // Match with frontend field name
 
-        if (!collection_name) {
-            res.status(400).json({ message: 'Collection name is required' });
+        if (!collection_name || !collection_name.trim()) {
+            res.status(400).json({ message: 'Collection title is required' });
             return;
         }
 
         const collection = await Collection.create({
             collection_id: uuidv4(),
-            collection_name,
-            user_id: user.user_id
+            user_id: user.user_id,
+            collection_name: collection_name.trim()
         });
 
-        res.status(201).json(collection);
+        res.status(201).json({
+            message: 'Collection created successfully',
+            collection
+        });
+        return;
     } catch (error) {
         console.error('Error creating collection:', error);
-        res.status(500).json({ message: 'Failed to create collection', error });
+        res.status(500).json({
+            message: 'Failed to create collection',
+            error
+        });
+        return;
     }
 };
 
@@ -71,8 +84,26 @@ export const addPostToCollection = async (req: Request, res: Response) => {
             return;
         }
 
-        await (collection as any).addPost(post_id);
+        const existing = await CollectionPost.findOne({
+            where: {
+                collection_id: collectionId,
+                post_id: post_id
+            }
+        });
+
+        if (existing) {
+            res.status(400).json({ message: 'Post already in collection', collectionId })
+            return;
+        }
+
+        await CollectionPost.create({
+            collection_id: collectionId,
+            post_id: post_id,
+            createdAt: new Date()
+        });
+
         res.json({ message: 'Post added to collection' });
+        return;
     } catch (error) {
         console.error('Error adding post to collection:', error);
         res.status(500).json({ message: 'Failed to add post to collection', error });
@@ -81,17 +112,17 @@ export const addPostToCollection = async (req: Request, res: Response) => {
 
 export const getCollectionById = async (req: Request, res: Response) => {
     try {
-        const user = res.locals.user;
         const { collectionId } = req.params;
 
         const collection = await Collection.findOne({
-            where: { 
-                collection_id: collectionId,
-                user_id: user.user_id 
-            },
+            where: { collection_id: collectionId },
             include: [{
                 model: Post,
-                through: { attributes: [] }
+                through: { attributes: [] },
+                include: [{
+                    model: User,
+                    attributes: ['username', 'profile_picture']
+                }]
             }]
         });
 
@@ -100,10 +131,12 @@ export const getCollectionById = async (req: Request, res: Response) => {
             return;
         }
 
+
+
         res.json(collection);
     } catch (error) {
-        console.error('Error fetching collection:', error);
-        res.status(500).json({ message: 'Failed to fetch collection', error });
+        console.error('Error getting collection:', error);
+        res.status(500).json({ message: 'Failed to get collection' });
     }
 };
 
@@ -153,5 +186,29 @@ export const deletePostFromCollection = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error removing post from collection:', error);
         res.status(500).json({ message: 'Failed to remove post from collection', error });
+    }
+};
+
+export const checkPostInCollections = async (req: Request, res: Response) => {
+    try {
+        const { post_id } = req.params;
+        const user_id = res.locals.user.user_id;
+
+        const collectionPost = await CollectionPost.findOne({
+            include: [{
+                model: Collection,
+                where: { user_id: user_id }
+            }],
+            where: { post_id: post_id }
+        });
+
+        res.json({
+            isBookmarked: !!collectionPost // Convert ke boolean
+        });
+    } catch (error) {
+        console.error('Error checking post in collections:', error);
+        res.status(500).json({ 
+            message: 'Failed to check post bookmark status'
+        });
     }
 };

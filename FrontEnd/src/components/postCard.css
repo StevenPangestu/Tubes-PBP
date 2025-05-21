@@ -111,3 +111,16 @@
   font-size: 13px;
   font-weight: 500;
 }
+
+.MuiButton-outlined {
+  border-color: #e0e0e0;
+}
+
+.MuiButton-outlined:hover {
+  border-color: #1976d2;
+  background-color: rgba(25, 118, 210, 0.04);
+}
+
+.action-btn.bookmarked {
+  color: #ff5700;
+}

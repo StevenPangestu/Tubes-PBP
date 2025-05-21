@@ -1,7 +1,7 @@
+import { Alert, Box, Button, Container, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
-import { loginUser } from '../api';
 import { useNavigate } from 'react-router-dom';
-import { Container, TextField, Button, Typography, Box, Alert } from '@mui/material';
+import { loginUser } from '../api';
 
 export default function Login() {
   const [email, setEmail] = useState('');

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { Category } from "../models/Category";
+import { Comment } from "../models/Comment";
 import { Post } from "../models/Post";
 import { User } from "../models/User";
 
@@ -43,8 +44,8 @@ export const createPost = async (req: Request, res: Response) => {
     const { caption, category_id } = req.body;
 
     if (!req.file || !caption || !category_id) {
-       res.status(400).json({ message: "Missing fields" });
-       return;
+        res.status(400).json({ message: "Missing fields" });
+        return;
     }
 
     const image_url = `/uploads/${req.file.filename}`;
@@ -65,3 +66,55 @@ export const createPost = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Failed to create post", error });
   }
 };
+
+export const updateCommentCount = async (req: Request, res: Response) => {
+    try {
+        const { idPost } = req.params;
+        
+        // Count comments for this post
+        const commentCount = await Comment.count({
+            where: { post_id: idPost }
+        });
+
+        // Update post
+        await Post.update(
+            { comments_count: commentCount },
+            { where: { post_id: idPost } }
+        );
+
+        res.json({ success: true, comments_count: commentCount });
+    } catch (error) {
+        console.error('Error updating comment count:', error);
+        res.status(500).json({ message: 'Failed to update comment count' });
+    }
+};
+
+export const getPostCommentCount = async (req: Request, res: Response) => {
+    try {
+        const { idPost } = req.params;
+        
+        console.log('Fetching comment count for post:', idPost);
+        
+        const commentCount = await Comment.count({
+            where: { 
+                post_id: idPost
+            }
+        });
+        
+        // Add console.log for debugging
+        console.log('Found comment count:', commentCount);
+        
+        res.json({ 
+            success: true,
+            count: commentCount 
+        });
+    } catch (error) {
+        console.error('Error getting comment count:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Failed to get comment count',
+            error
+        });
+    }
+};
+

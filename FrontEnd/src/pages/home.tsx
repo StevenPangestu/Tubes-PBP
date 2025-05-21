@@ -1,4 +1,4 @@
-import { Add, Logout, Search } from '@mui/icons-material';
+import { Add, Collections, Logout, Search } from '@mui/icons-material';
 import {
   AppBar,
   Avatar,
@@ -100,7 +100,7 @@ const Home = () => {
     setUser(null);
     navigate('/login');
   };
-
+  
   return (
     <div className="home-container">
       <AppBar position="sticky" color="inherit" elevation={1}>
@@ -121,6 +121,18 @@ const Home = () => {
           <div className="nav-actions">
             {user ? (
               <>
+                <IconButton 
+                    onClick={() => {
+                        const token = localStorage.getItem('token');
+                        if (token) {
+                            navigate('/collections');
+                        } else {
+                            navigate('/login');
+                        }
+                    }}
+                >
+                    <Collections />
+                </IconButton>
                 <IconButton onClick={() => navigate('/create')}>
                   <Add />
                 </IconButton>

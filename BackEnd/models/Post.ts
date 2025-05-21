@@ -81,10 +81,6 @@ export class Post extends Model {
   declare updatedAt: Date;
 
 
-  @BelongsToMany(() => Collection, {
-    through: () => CollectionPost,
-    foreignKey: 'post_id',
-    otherKey: 'collection_id'
-  })
-  declare collections: Collection[];
+  @BelongsToMany(() => Collection, () => CollectionPost)
+  declare collections?: Collection[];
 }

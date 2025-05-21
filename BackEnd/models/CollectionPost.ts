@@ -13,8 +13,7 @@ import { Post } from "./Post";
 
 @Table({
   tableName: "CollectionPost",
-  timestamps: true,
-  createdAt: "createdAt",
+  timestamps: false
 })
 export class CollectionPost extends Model {
   //collection_post_id
@@ -52,6 +51,8 @@ export class CollectionPost extends Model {
   //createdAt
   @Column({
     type: DataType.DATE,
+    allowNull: false,
+    defaultValue: DataType.NOW
   })
   declare createdAt: Date;
 }

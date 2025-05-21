@@ -23,33 +23,39 @@
 .comment-box.reply {
     margin-left: 40px;
     border-left: 3px solid #ff5700;
+    background: #fff;
 }
 
 .comment-header {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
 }
 
 .comment-content {
-    margin: 10px 0;
+    margin: 8px 0;
+    white-space: pre-wrap;
 }
 
 .comment-actions {
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    margin-top: 4px;
 }
 
-.reply-box,
-.edit-box {
-    margin-top: 10px;
-    padding: 10px;
+.edit-box, .reply-box {
+    margin-top: 12px;
+    padding: 12px;
     background: #fff;
     border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.replies-container {
+    margin-left: 20px;
+    padding-left: 20px;
+    border-left: 2px solid #e9ecef;
 }
 
 .submit-button {
