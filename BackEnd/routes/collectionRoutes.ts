@@ -6,7 +6,8 @@ import {
     deleteCollection,
     deletePostFromCollection,
     getAllCollections,
-    getCollectionById
+    getCollectionById,
+    getCollectionsWithPost
 } from '../controllers/collectionController';
 import { authenticate } from '../middlewares/authMiddleware';
 
@@ -18,6 +19,7 @@ router.post('/', authenticate, createCollection);
 router.get('/', authenticate, getAllCollections);
 router.get('/:collectionId', authenticate, getCollectionById);
 router.delete('/:collectionId', authenticate, deleteCollection);
+router.get('/with-posts/:post_id', authenticate, getCollectionsWithPost)
 
 
 router.post('/:collectionId/posts', authenticate, addPostToCollection);

@@ -22,6 +22,7 @@ const PostCard = ({ post }: PostCardProps) => {
   const [dialogMode, setDialogMode] = useState<'save' | 'unbookmarked'>('save');
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
   const [loadingBookmark, setLoadingBookmark] = useState(false);
+  const [collectionsWithPost, setCollectionsWithPost] = useState<Collection[]>([]);
 
   useEffect(() => {
     fetchCollections();
@@ -62,31 +63,49 @@ const PostCard = ({ post }: PostCardProps) => {
     checkIfPostBookmarked();
   }, [post.post_id]);
 
+  const fetchCollectionsWithPost = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.get(`http://localhost:3000/collections/with-posts/${post.post_id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCollectionsWithPost(response.data);
+    } catch (err) {
+      console.error('Error fetching collections with post:', err);
+    }
+  };
+
   const handleBookmarkClick = () => {
     if (isBookmarked) {
       setDialogMode('unbookmarked');
+      fetchCollectionsWithPost();
     } else {
       setDialogMode('save');
+      fetchCollections();
     }
     setSelectedCollectionId(null);
     setOpenDialog(true);
   };
 
-  const handleUnbookmark = async () => {
+  const handleUnbookmark = async (collectionId?: string) => {
     
     try {
       setLoadingBookmark(true);
       const token = localStorage.getItem('token');
       if (!token) return;
-      
-      if (!selectedCollectionId) {
+
+      const idToUse = collectionId || selectedCollectionId;
+
+      if (!idToUse) {
         setSnackbarMessage('Please select a collection to remove bookmark');
         setSnackbarOpen(true);
         return;
       }
 
       await axios.delete(
-        `http://localhost:3000/collections/${selectedCollectionId}/posts/${post.post_id}`,
+        `http://localhost:3000/collections/${idToUse}/posts/${post.post_id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -261,16 +280,15 @@ const PostCard = ({ post }: PostCardProps) => {
               Remove from Collection
             </Typography>
 
-            {collections.length > 0 ? (
+            {collectionsWithPost.length > 0 ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {collections.map((collection) => (
+                {collectionsWithPost.map((collection) => (
                   <Button
                     key={collection.collection_id}
                     variant="outlined"
                     fullWidth
                     onClick={() => {
-                      setSelectedCollectionId(collection.collection_id);
-                      handleUnbookmark();
+                      handleUnbookmark(collection.collection_id);
                     }}
                     disabled={loadingBookmark}
                     sx={{
@@ -285,7 +303,7 @@ const PostCard = ({ post }: PostCardProps) => {
               </Box>
             ) : (
               <Typography color="text.secondary">
-                No collections found with this post.
+                This post is not saved in any collection.
               </Typography>
             )}
           </>
@@ -293,14 +311,27 @@ const PostCard = ({ post }: PostCardProps) => {
       </Dialog>
 
       {/* Success/Error Snackbar */}
-      <Snackbar 
-        open={snackbarOpen} 
-        autoHideDuration={3000} 
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
         onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        sx={{
+          position: 'fixed',
+          bottom: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 2000,
+          '& .MuiPaper-root': {
+            minWidth: '288px',
+            boxShadow: '0 3px 5px -1px rgba(0,0,0,0.2), 0 6px 10px 0 rgba(0,0,0,0.14), 0 1px 18px 0 rgba(0,0,0,0.12)'
+          }
+        }}
       >
         <Alert 
           onClose={() => setSnackbarOpen(false)} 
-          severity={snackbarMessage.includes('Failed') ? 'error' : 'success'}
+          severity="success" 
+          sx={{ width: '100%' }}
         >
           {snackbarMessage}
         </Alert>

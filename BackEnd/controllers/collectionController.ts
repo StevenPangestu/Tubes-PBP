@@ -207,8 +207,35 @@ export const checkPostInCollections = async (req: Request, res: Response) => {
         });
     } catch (error) {
         console.error('Error checking post in collections:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             message: 'Failed to check post bookmark status'
+        });
+    }
+};
+
+export const getCollectionsWithPost = async (req: Request, res: Response) => {
+    try {
+        const user = res.locals.user;
+        const { post_id } = req.params;
+
+        const collections = await Collection.findAll({
+            include: [{
+                model: Post,
+                as: 'posts',
+                through: {
+                    where: { post_id }
+                },
+                required: true
+            }],
+            where: { user_id: user.user_id }
+        });
+
+        res.json(collections);
+    } catch (error) {
+        console.error('Error getting collections with post:', error);
+        res.status(500).json({
+            message: 'Failed to get collections containing the post',
+            error
         });
     }
 };
