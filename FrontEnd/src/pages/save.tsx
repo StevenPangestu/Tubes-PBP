@@ -27,7 +27,6 @@ export default function SavePost() {
     const [error, setError] = useState(false);
     const navigate = useNavigate();
 
-  // Fetch user's collections when component mounts
     useEffect(() => {
     const fetchCollections = async () => {
         try {
