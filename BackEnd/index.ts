@@ -8,8 +8,8 @@ import collectionRoutes from "./routes/collectionRoutes";
 import commentRoutes from "./routes/commentRoute";
 import postRoutes from "./routes/postRoutes";
 import userRoutes from "./routes/userRoutes";
-import likeRoutes from './routes/likeRoutes';
 import followRoutes from './routes/followRoutes';
+import searchRoutes from './routes/searchRoutes';
 
 import { authenticate } from "./middlewares/authMiddleware";
 import { errorHandlerMiddleware } from "./middlewares/errorHandlerMiddleware";
@@ -31,11 +31,10 @@ app.use("/auth", authRoutes);
 app.use("/categories", categoryRoutes);
 app.use("/users", userRoutes);
 app.use("/posts", postRoutes);
-app.use("/users/profile", authenticate);
-app.use("/posts", likeRoutes);
 app.use("/collections", collectionRoutes);
-app.use("/comments", commentRoutes);
+app.use("/", commentRoutes);
 app.use("/follows", followRoutes);
+app.use("/search", searchRoutes);
 
 app.use(errorHandlerMiddleware);
 

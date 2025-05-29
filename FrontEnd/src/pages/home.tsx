@@ -59,14 +59,24 @@ const Home = () => {
   const fetchPosts = async (pageToLoad: number, searchTerm?: string) => {
     try {
       const token = localStorage.getItem('token');
-      let url = `http://localhost:3000/posts?page=${pageToLoad}&limit=${limit}`;
-      if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
+      let url = '';
+      
+      if (searchTerm && searchTerm.trim()) {
+        url = `http://localhost:3000/search/posts?q=${encodeURIComponent(searchTerm.trim())}&page=${pageToLoad}&limit=${limit}`;
+      } else {
+        url = `http://localhost:3000/posts?page=${pageToLoad}&limit=${limit}`;
+      }
 
-      const response = await axios.get<Post[]>(url, {
+      const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const newPosts = response.data;
+      let newPosts: Post[];
+      if (searchTerm && searchTerm.trim()) {
+        newPosts = response.data.posts;
+      } else {
+        newPosts = response.data;
+      }
 
       setPosts(prev => {
         const existingIds = new Set(prev.map(p => p.post_id));
@@ -87,14 +97,27 @@ const Home = () => {
     setTrendingLoading(true);
     setTrendingError('');
     try {
-      let url = `http://localhost:3000/posts/trending?hours=${hours}`;
-      if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
       const token = localStorage.getItem('token');
+      let url = '';
+      
+      if (searchTerm && searchTerm.trim()) {
+        url = `http://localhost:3000/search/posts?q=${encodeURIComponent(searchTerm.trim())}&page=0&limit=10`;
+      } else {
+        url = `http://localhost:3000/posts/trending?hours=${hours}`;
+      }
 
-      const res = await axios.get<Post[]>(url, {
+      const response = await axios.get(url, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      setTrendingPosts(res.data);
+
+      let newPosts: Post[];
+      if (searchTerm && searchTerm.trim()) {
+        newPosts = response.data.posts;
+      } else {
+        newPosts = response.data;
+      }
+
+      setTrendingPosts(newPosts);
     } catch (err) {
       setTrendingError('Login to see trending posts');
     } finally {
