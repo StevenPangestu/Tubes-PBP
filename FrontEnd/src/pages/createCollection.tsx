@@ -1,8 +1,8 @@
 import { Alert, Box, Button, Container, TextField, Typography } from '@mui/material';
-import axios from 'axios';
+import { API } from '../utils/api'; // Ganti import ini
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './createCollection.css';
+import '../styles/createCollection.css';
 
 export default function CreateCollection() {
     const [title, setTitle] = useState('');
@@ -31,16 +31,11 @@ export default function CreateCollection() {
         try {
             console.log('Sending request with data:', { collection_name: title.trim() }); // Debug log
             
-            const response = await axios.post(
-                'http://localhost:3000/collections',
+            // Ganti ke API yang baru - auto token & baseURL!
+            const response = await API.post(
+                '/collections',
                 {
                     collection_name: title.trim()
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
                 }
             );
 

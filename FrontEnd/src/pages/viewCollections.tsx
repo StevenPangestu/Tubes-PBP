@@ -11,11 +11,11 @@ import {
     Toolbar,
     Typography
 } from '@mui/material';
-import axios from 'axios';
+import { API } from '../utils/api';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Collection } from '../types';
-import './viewCollections.css';
+import '../styles/viewCollections.css';
 
 export default function ViewCollections() {
     const navigate = useNavigate();
@@ -32,9 +32,7 @@ export default function ViewCollections() {
                     return;
                 }
 
-                const response = await axios.get('http://localhost:3000/collections', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const response = await API.get('/collections');     
 
                 setCollections(response.data);
             } catch (err) {

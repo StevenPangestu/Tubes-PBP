@@ -9,10 +9,11 @@ import {
     Toolbar,
     Typography
 } from '@mui/material';
-import axios from 'axios';
+import { API } from '../utils/api';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Collection, Post } from '../types';
+// import '../styles/viewCollections.css';
 
 interface CollectionWithPosts extends Collection {
     posts?: Post[];
@@ -34,9 +35,7 @@ export default function ViewEachCollections() {
                     return;
                 }
 
-                const response = await axios.get(`http://localhost:3000/collections/${collectionId}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const response = await API.get(`/collections/${collectionId}`);
 
                 setCollection(response.data);
             } catch (err) {

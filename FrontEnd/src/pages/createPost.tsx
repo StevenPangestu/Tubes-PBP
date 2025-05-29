@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import './createPost.css';
+import '../styles/createPost.css';
 import {
   Container,
   TextField,
@@ -12,7 +12,7 @@ import {
   Select,
   FormControl,
 } from '@mui/material';
-import axios from 'axios';
+import { API } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 
 interface Category {
@@ -32,7 +32,7 @@ export default function CreatePost() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await axios.get<Category[]>('http://localhost:3000/categories');
+        const res = await API.get<Category[]>('/categories');
         setCategories(res.data);
       } catch (err) {
         console.error(err);
@@ -70,10 +70,9 @@ export default function CreatePost() {
       formData.append('caption', caption);
       formData.append('category_id', categoryId);
 
-      await axios.post('http://localhost:3000/posts', formData, {
+      await API.post('/posts', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`,
         },
       });
 

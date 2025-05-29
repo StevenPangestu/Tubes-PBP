@@ -12,13 +12,13 @@ import {
   Snackbar, TextField,
   Typography
 } from '@mui/material';
-import axios from 'axios';
+import { API } from '../utils/api';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import defaultAvatar from '../assets/default-avatar.png';
 import { Category, Collection, Post } from '../types';
 import { formatPostImageUrl, formatProfilePictureUrl } from '../utils/imageUtils';
-import './postCard.css';
+import '../styles/postCard.css';
 
 interface PostCardProps {
   post: Post;
@@ -72,9 +72,7 @@ const PostCard = ({
   useEffect(() => {
   const fetchCategories = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/categories", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await API.get("/categories");
       setCategories(res.data);
     } catch (err) {
       console.error("Failed to fetch categories", err);
@@ -91,17 +89,13 @@ const PostCard = ({
     const updatedPost = { ...post };
     try {
       if (liked) {
-        await axios.delete(`http://localhost:3000/posts/${post.post_id}/like`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await API.delete(`/posts/${post.post_id}/like`);
         setLiked(false);
         setLikesCount(prev => prev - 1);
         updatedPost.is_liked = false;
         updatedPost.likes_count = (Number(updatedPost.likes_count || 1) - 1);
       } else {
-        await axios.post(`http://localhost:3000/posts/${post.post_id}/like`, {}, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await API.post(`/posts/${post.post_id}/like`, {});
         setLiked(true);
         setLikesCount(prev => prev + 1);
         updatedPost.is_liked = true;
@@ -115,9 +109,7 @@ const PostCard = ({
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:3000/posts/${post.post_id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await API.delete(`/posts/${post.post_id}`);
       setSnackbar({ open: true, message: 'Post deleted!', severity: 'success' });
       onPostDeleted?.(post.post_id);
     } catch (err) {
@@ -129,10 +121,10 @@ const PostCard = ({
 
   const handleSaveEdit = async () => {
     try {
-      await axios.put(`http://localhost:3000/posts/${post.post_id}`, {
+      await API.put(`/posts/${post.post_id}`, {
         caption: editCaption,
         category_id: editCategoryId
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      });
 
       const updatedPost = {
         ...post,
@@ -159,27 +151,22 @@ const PostCard = ({
 
   const fetchCollections = async () => {
     if (!token) return;
-    const res = await axios.get('http://localhost:3000/collections', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setCollections(res.data);
+  const res = await API.get('/collections');
+      setCollections(res.data);
   };
 
   const fetchCollectionsWithPost = async () => {
     if (!token) return;
-    const res = await axios.get(`http://localhost:3000/collections/with-posts/${post.post_id}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setCollectionsWithPost(res.data);
+  const res = await API.get(`/collections/with-posts/${post.post_id}`);
+      setCollectionsWithPost(res.data);
   };
-
   const handleCollectionSelect = async (collectionId: string) => {
     if (!token) return;
     try {
       setLoadingBookmark(true);
-      await axios.post(`http://localhost:3000/collections/${collectionId}/posts`, {
+      await API.post(`/collections/${collectionId}/posts`, {
         post_id: post.post_id
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      });
       setSnackbar({ open: true, message: 'Post saved!', severity: 'success' });
       setIsBookmarked(true);
     } catch {
@@ -197,9 +184,7 @@ const PostCard = ({
       const id = collectionId || selectedCollectionId;
       if (!id) return;
 
-      await axios.delete(`http://localhost:3000/collections/${id}/posts/${post.post_id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await API.delete(`/collections/${id}/posts/${post.post_id}`);
       setIsBookmarked(false);
       setSnackbar({ open: true, message: 'Removed from collection', severity: 'success' });
     } catch {
@@ -222,12 +207,7 @@ const PostCard = ({
           return;
         }
         
-        const response = await axios.get(
-          `http://localhost:3000/follows/mutual/${post.user_id}`, 
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
+        const response = await API.get(`/follows/mutual/${post.user_id}`);
         
         if (response.data.mutualFollowing) {
           navigate(`/posts/${post.post_id}/comments`);
@@ -242,12 +222,8 @@ const PostCard = ({
         console.error('Error checking comment permission:', err);
         
         try {
-          const response = await axios.get(
-            `http://localhost:3000/follows/check-mutual/${post.user_id}`, 
-            {
-              headers: { Authorization: `Bearer ${token}` }
-            }
-          );
+          const response = await API.get(`/follows/check-mutual/${post.user_id}`);
+
           
           if (response.data.mutualFollowing) {
             navigate(`/posts/${post.post_id}/comments`);

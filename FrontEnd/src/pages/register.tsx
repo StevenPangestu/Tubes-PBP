@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { registerUser } from '../api';
 import { useNavigate } from 'react-router-dom';
 import { Container, TextField, Button, Typography, Box, Alert } from '@mui/material';
+import { API } from '../utils/api'; // Ganti import ini
 
 export default function Register() {
   const [username, setUsername] = useState('');
@@ -28,8 +28,9 @@ export default function Register() {
       setError(true);
       return;
     }    
+
     try {
-      await registerUser({ username, email, password });
+      await API.post('/auth/register', { username, email, password });
       setMessage('Registration successful!');
       setError(false);
       navigate('/login');

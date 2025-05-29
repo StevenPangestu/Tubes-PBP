@@ -1,5 +1,5 @@
 import { useEffect, useState, ChangeEvent, SyntheticEvent } from 'react';
-import './profile.css';
+import '../styles/profile.css';
 import { formatProfilePictureUrl } from '../utils/imageUtils';
 import {
   Container,
@@ -26,7 +26,7 @@ import {
   ListItemText,
   ListItemSecondaryAction,
 } from '@mui/material';
-import axios from 'axios';
+import { API } from '../utils/api';
 import { Post, User } from '../types';
 import PostCard from '../components/postCard';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -99,13 +99,11 @@ const [editEmail, setEditEmail] = useState<string>('');
         if (!targetUsername) return;
         
         setLoading(true);
-        const res = await axios.get<User>(
+        const res = await API.get<User>(
           username
-            ? `http://localhost:3000/users/${username}`
-            : `http://localhost:3000/users/profile`,
-          { headers: { Authorization: `Bearer ${token}` } }
+            ? `/users/${username}`
+            : `/users/profile`
         );
-
         setUser(res.data);
         setBio(res.data.bio || '');
         setEditUsername(res.data.username);
@@ -133,9 +131,8 @@ const [editEmail, setEditEmail] = useState<string>('');
   const fetchPostsPage = async (pageToLoad: number) => {
     try {
       if (!user || !token) return;
-      const res = await axios.get(
-        `http://localhost:3000/users/${user.username}/posts?page=${pageToLoad}&limit=${limit}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await API.get(
+        `/users/${user.username}/posts?page=${pageToLoad}&limit=${limit}`
       );
 
       const data = res.data;
@@ -213,12 +210,11 @@ const [editEmail, setEditEmail] = useState<string>('');
         formData.append('remove_picture', 'true');
 
         
-        const res = await axios.put(
-          `http://localhost:3000/users/${user.user_id}`,
+        const res = await API.put(
+          `/users/${user.user_id}`,
           formData,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
               'Content-Type': 'multipart/form-data',
             },
           }
@@ -277,12 +273,11 @@ const [editEmail, setEditEmail] = useState<string>('');
   }
 
   try {
-    const res = await axios.put(
-      `http://localhost:3000/users/${user.user_id}`,
+    const res = await API.put(
+      `/users/${user.user_id}`,
       formData,
       {
         headers: {
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
       }
@@ -327,9 +322,7 @@ const [editEmail, setEditEmail] = useState<string>('');
   const fetchFollowers = async () => {
     if (!user || !token) return;
     try {
-      const res = await axios.get(`http://localhost:3000/follows/followers/${user.user_id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await API.get(`/follows/followers/${user.user_id}`);
       setFollowers(res.data);
     } catch (err) {
       console.error('Error fetching followers:', err);
@@ -339,9 +332,7 @@ const [editEmail, setEditEmail] = useState<string>('');
   const fetchFollowing = async () => {
     if (!user || !token) return;
     try {
-      const res = await axios.get(`http://localhost:3000/follows/following/${user.user_id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await API.get(`/follows/following/${user.user_id}`);
       setFollowing(res.data);
     } catch (err) {
       console.error('Error fetching following:', err);
@@ -354,17 +345,9 @@ const [editEmail, setEditEmail] = useState<string>('');
     setLoadingFollow(true);
     try {
       if (!isFollowing) {
-        await axios.post(
-          `http://localhost:3000/follows/${user.user_id}`,
-          {},
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setIsFollowing(true);
-        setFollowersCount(prev => prev + 1);
-      } else {
-        await axios.delete(`http://localhost:3000/follows/${user.user_id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await API.post(`/follows/${user.user_id}`, {});
+
+        await API.delete(`/follows/${user.user_id}`);
         setIsFollowing(false);
         setFollowersCount(prev => Math.max(0, prev - 1));
       }

@@ -1,7 +1,7 @@
 import { Alert, Box, Button, Container, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginUser } from '../api';
+import { API } from '../utils/api';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -27,29 +27,29 @@ export default function Login() {
       setError(true);
       return;
     }    
-try {
-  const res = await loginUser({ email, password });
-  console.log('Login response:', res.data);
 
-  const token = res.data.session?.token;
-  const user = res.data.user;
+    try {
+      const res = await API.post('/auth/login', { email, password });
+      console.log('Login response:', res.data);
 
-  if (!token || !user) {
-    setMessage('Login failed: invalid server response');
-    setError(true);
-    return;
-  }
+      const token = res.data.session?.token;
+      const user = res.data.user;
 
-  localStorage.setItem('token', token);
-  localStorage.setItem('user', JSON.stringify(user));
-  setError(false);
-  setMessage('Login successful!');
-  navigate('/home');
-} catch (err: any) {
-  setMessage(err.response?.data?.message || 'Login failed');
-  setError(true);
-}
+      if (!token || !user) {
+        setMessage('Login failed: invalid server response');
+        setError(true);
+        return;
+      }
 
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      setError(false);
+      setMessage('Login successful!');
+      navigate('/home');
+    } catch (err: any) {
+      setMessage(err.response?.data?.message || 'Login failed');
+      setError(true);
+    }
   };
 
   return (

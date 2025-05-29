@@ -8,10 +8,10 @@ import {
     Select,
     Typography
 } from '@mui/material';
-import axios from 'axios';
+import { API } from '../utils/api';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import './save.css';
+import '../styles/save.css';
 
 interface Collection {
     collection_id: string;
@@ -27,7 +27,6 @@ export default function SavePost() {
     const [error, setError] = useState(false);
     const navigate = useNavigate();
 
-  // Fetch user's collections when component mounts
     useEffect(() => {
     const fetchCollections = async () => {
         try {
@@ -38,11 +37,7 @@ export default function SavePost() {
             return;
             }
 
-            const response = await axios.get('http://localhost:3000/collections', {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-            });
+            const response = await API.get('/collections');
             setCollections(response.data);
         } catch (err) {
             setError(true);
@@ -68,15 +63,7 @@ export default function SavePost() {
             return;
         }
 
-        await axios.post(
-            `http://localhost:3000/collections/${selectedCollection}/posts`,
-            { post_id: postId },
-            {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-            }
-        );
+        await API.post(`/collections/${selectedCollection}/posts`,{ post_id: postId });
 
         setError(false);
         setMessage('Post saved to collection successfully!');

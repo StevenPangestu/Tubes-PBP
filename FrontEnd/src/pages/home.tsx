@@ -7,13 +7,13 @@ import {
   Stack,
   TextField, Toolbar
 } from '@mui/material';
-import axios from 'axios';
+import { API } from '../utils/api';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PostCard from '../components/postCard';
 import { Post, User } from '../types';
 import { formatProfilePictureUrl } from '../utils/imageUtils';
-import './home.css';
+import '../styles/home.css';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -41,10 +41,7 @@ const Home = () => {
       const parsedUser = JSON.parse(storedUser);
 
       try {
-        const res = await axios.get<User>(
-          `http://localhost:3000/users/${parsedUser.username}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const res = await API.get<User>(`/users/${parsedUser.username}`);
         setUser(res.data);
         localStorage.setItem('user', JSON.stringify(res.data));
       } catch (err) {
@@ -60,18 +57,19 @@ const Home = () => {
 
 const fetchPosts = async (pageToLoad: number, searchTerm?: string) => {
   try {
-    const token = localStorage.getItem('token');
-    let url = `http://localhost:3000/posts?page=${pageToLoad}&limit=${limit}`;
-    if (searchTerm) url += `&q=${encodeURIComponent(searchTerm)}`;
+    let url: string;
 
-    const response = await axios.get(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    if (searchTerm && searchTerm.trim()) {
+      url = `/search/posts?q=${encodeURIComponent(searchTerm.trim())}&page=${pageToLoad}&limit=${limit}`;
+    } else {
+      url = `/posts?page=${pageToLoad}&limit=${limit}`;
+    }
+
+    const response = await API.get(url);
 
     const data = response.data;
-    const newPosts: Post[] = data.posts;
+    const newPosts: Post[] = data.posts ?? data; // fallback jika backend kirim langsung array
+    const hasMoreFromResponse = data.hasMore ?? false;
 
     setPosts(prev => {
       const existingIds = new Set(prev.map(p => p.post_id));
@@ -79,7 +77,7 @@ const fetchPosts = async (pageToLoad: number, searchTerm?: string) => {
       return pageToLoad === 0 ? newPosts : [...prev, ...uniqueNew];
     });
 
-    setHasMore(data.hasMore);
+    setHasMore(hasMoreFromResponse);
   } catch (err: any) {
     console.error(err);
     setError('Login to see posts');
@@ -92,18 +90,15 @@ const fetchPosts = async (pageToLoad: number, searchTerm?: string) => {
     setTrendingLoading(true);
     setTrendingError('');
     try {
-      const token = localStorage.getItem('token');
       let url = '';
       
       if (searchTerm && searchTerm.trim()) {
-        url = `http://localhost:3000/search/posts?q=${encodeURIComponent(searchTerm.trim())}&page=0&limit=10`;
+        url = `/search/posts?q=${encodeURIComponent(searchTerm.trim())}&page=0&limit=10`;
       } else {
-        url = `http://localhost:3000/posts/trending?hours=${hours}`;
+        url = `/posts/trending?hours=${hours}`;
       }
 
-      const response = await axios.get(url, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const response = await API.get(url);
 
       let newPosts: Post[];
       if (searchTerm && searchTerm.trim()) {

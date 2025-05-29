@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { API } from '../utils/api';
 import PostCard from '../components/postCard';
 import { Post } from '../types';
 import { Box, Typography, ButtonGroup, Button, Stack } from '@mui/material';
@@ -18,10 +18,7 @@ const Trending = () => {
 
   useEffect(() => {
     setLoading(true);
-    const token = localStorage.getItem('token');
-    axios.get<Post[]>(`/posts/trending?hours=${hours}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
+    API.get<Post[]>(`/posts/trending?hours=${hours}`)
       .then(res => setPosts(res.data))
       .catch(() => setPosts([]))
       .then(() => setLoading(false));
