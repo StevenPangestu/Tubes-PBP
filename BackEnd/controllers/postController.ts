@@ -6,6 +6,8 @@ import { Post } from "../models/Post";
 import { User } from "../models/User";
 import { Sequelize } from "sequelize";
 import { formatPost } from "../utils/formatPost";
+import { getPaginationParams, calculateHasMore } from "../utils/pagination";
+
 import {
   getLikedPostIds,
   getLikeCountMap,
@@ -15,9 +17,9 @@ import {
 
 export const getAllPosts = async (req: Request, res: Response) => {
   const user = res.locals.user;
-  const page = parseInt(req.query.page as string) || 0;
-  const limit = parseInt(req.query.limit as string) || 3;
-  const offset = page * limit;
+  const { page, limit, offset } = getPaginationParams(req, 3);
+
+  const totalCount = await Post.count();
 
   const posts = await Post.findAll({
     include: [
@@ -35,17 +37,24 @@ export const getAllPosts = async (req: Request, res: Response) => {
     offset,
   });
 
-  const postIds = posts.map(post => post.post_id);
+  const postIds = posts.map((post) => post.post_id);
 
   const likedPostIds = user ? await getLikedPostIds(user.user_id) : [];
   const likeCountMap = await getLikeCountMap();
   const commentCountMap = await getCommentCountMap(postIds);
   const bookmarkedPostIds = user ? await getBookmarkedPostIds(user.user_id) : [];
 
-  return posts.map(post =>
+  const formattedPosts = posts.map((post) =>
     formatPost(post, likedPostIds, likeCountMap, commentCountMap, bookmarkedPostIds, req)
   );
+
+  return res.json({
+    posts: formattedPosts,
+    totalCount,
+    hasMore: calculateHasMore(totalCount, page, limit),
+  });
 };
+
 
 export const createPost = async (req: Request, res: Response) => {
   const user = res.locals.user;

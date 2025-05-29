@@ -10,24 +10,25 @@ import {
   getCommentCountMap,
   getBookmarkedPostIds
 } from "../utils/postHelper";
+import { getPaginationParams, calculateHasMore } from "../utils/pagination";
 
 export const searchPosts = async (req: Request, res: Response) => {
   const user = res.locals.user;
-  const { q: searchTerm, page = 0, limit = 3 } = req.query;
-  const offset = parseInt(page as string) * parseInt(limit as string);
+  const { q: searchTermRaw } = req.query;
+  const { page, limit, offset } = getPaginationParams(req, 3);
 
-  if (!searchTerm || typeof searchTerm !== 'string' || searchTerm.trim().length === 0) {
+  if (!searchTermRaw || typeof searchTermRaw !== "string" || searchTermRaw.trim().length === 0) {
     res.locals.errorCode = 400;
-    throw new Error('Search term is required');
+    throw new Error("Search term is required");
   }
 
-  const trimmedSearch = searchTerm.trim();
+  const searchTerm = searchTermRaw.trim();
 
-  const posts = await Post.findAll({
+  const { count: totalCount, rows: posts } = await Post.findAndCountAll({
     where: {
       caption: {
-        [Op.iLike]: `%${trimmedSearch}%`
-      }
+        [Op.iLike]: `%${searchTerm}%`,
+      },
     },
     include: [
       {
@@ -40,26 +41,26 @@ export const searchPosts = async (req: Request, res: Response) => {
       },
     ],
     order: [["createdAt", "DESC"]],
-    limit: parseInt(limit as string),
+    limit,
     offset,
   });
 
-  const postIds = posts.map(post => post.post_id);
+  const postIds = posts.map((post) => post.post_id);
 
   const likedPostIds = user ? await getLikedPostIds(user.user_id) : [];
   const likeCountMap = await getLikeCountMap();
   const commentCountMap = await getCommentCountMap(postIds);
   const bookmarkedPostIds = user ? await getBookmarkedPostIds(user.user_id) : [];
 
-  const formattedPosts = posts.map(post =>
+  const formattedPosts = posts.map((post) =>
     formatPost(post, likedPostIds, likeCountMap, commentCountMap, bookmarkedPostIds, req)
   );
 
-  return {
-    searchTerm: trimmedSearch,
+  return res.json({
+    searchTerm,
     posts: formattedPosts,
-    totalResults: posts.length,
-    hasMore: posts.length >= parseInt(limit as string),
-    page: parseInt(page as string)
-  };
+    totalCount,
+    hasMore: calculateHasMore(totalCount, page, limit),
+    page,
+  });
 };

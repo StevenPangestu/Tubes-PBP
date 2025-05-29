@@ -58,42 +58,35 @@ const Home = () => {
     loadUser();
   }, []);
 
-  const fetchPosts = async (pageToLoad: number, searchTerm?: string) => {
-    try {
-      const token = localStorage.getItem('token');
-      let url = '';
-      
-      if (searchTerm && searchTerm.trim()) {
-        url = `http://localhost:3000/search/posts?q=${encodeURIComponent(searchTerm.trim())}&page=${pageToLoad}&limit=${limit}`;
-      } else {
-        url = `http://localhost:3000/posts?page=${pageToLoad}&limit=${limit}`;
-      }
+const fetchPosts = async (pageToLoad: number, searchTerm?: string) => {
+  try {
+    const token = localStorage.getItem('token');
+    let url = `http://localhost:3000/posts?page=${pageToLoad}&limit=${limit}`;
+    if (searchTerm) url += `&q=${encodeURIComponent(searchTerm)}`;
 
-      const response = await axios.get(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-      let newPosts: Post[];
-      if (searchTerm && searchTerm.trim()) {
-        newPosts = response.data.posts;
-      } else {
-        newPosts = response.data;
-      }
+    const data = response.data;
+    const newPosts: Post[] = data.posts;
 
-      setPosts(prev => {
-        const existingIds = new Set(prev.map(p => p.post_id));
-        const uniqueNew = newPosts.filter(p => !existingIds.has(p.post_id));
-        return pageToLoad === 0 ? newPosts : [...prev, ...uniqueNew];
-      });
+    setPosts(prev => {
+      const existingIds = new Set(prev.map(p => p.post_id));
+      const uniqueNew = newPosts.filter(p => !existingIds.has(p.post_id));
+      return pageToLoad === 0 ? newPosts : [...prev, ...uniqueNew];
+    });
 
-      setHasMore(newPosts.length >= limit);
-    } catch (err: any) {
-      console.error(err);
-      setError('Login to see posts');
-    } finally {
-      setLoading(false);
-    }
-  };
+    setHasMore(data.hasMore);
+  } catch (err: any) {
+    console.error(err);
+    setError('Login to see posts');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchTrending = async (hours: number, searchTerm?: string) => {
     setTrendingLoading(true);

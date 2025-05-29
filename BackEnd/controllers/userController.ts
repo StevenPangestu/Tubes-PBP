@@ -9,6 +9,8 @@ import { Like } from "../models/Like";
 import { Follow } from "../models/Follow";
 import { formatProfilePictureUrl } from '../utils/formatUrl';
 import { formatPost } from '../utils/formatPost';
+import { getPaginationParams, calculateHasMore } from "../utils/pagination";
+
 import {
   getLikedPostIds,
   getLikeCountMap,
@@ -94,9 +96,7 @@ export const getUserByUsername = async (req: Request, res: Response) => {
 
 export const getPostsByUsername = async (req: Request, res: Response) => {
   const { username } = req.params;
-  const page = parseInt(req.query.page as string) || 0;
-  const limit = parseInt(req.query.limit as string) || 3;
-  const offset = page * limit;
+  const { page, limit, offset } = getPaginationParams(req, 3);
 
   const user = await User.findOne({ where: { username } });
   if (!user) {
@@ -105,6 +105,8 @@ export const getPostsByUsername = async (req: Request, res: Response) => {
   }
 
   const currentUser = res.locals.user;
+
+  const totalCount = await Post.count({ where: { user_id: user.user_id } });
 
   const posts = await Post.findAll({
     where: { user_id: user.user_id },
@@ -126,9 +128,15 @@ export const getPostsByUsername = async (req: Request, res: Response) => {
   const commentCountMap = await getCommentCountMap(postIds);
   const bookmarkedPostIds = currentUser ? await getBookmarkedPostIds(currentUser.user_id) : [];
 
-  return posts.map(post =>
+  const formattedPosts = posts.map(post =>
     formatPost(post, likedPostIds, likeCountMap, commentCountMap, bookmarkedPostIds, req)
   );
+
+  return res.json({
+    posts: formattedPosts,
+    totalCount,
+    hasMore: calculateHasMore(totalCount, page, limit),
+  });
 };
 
 export const updateUserProfile = async (req: Request, res: Response) => {

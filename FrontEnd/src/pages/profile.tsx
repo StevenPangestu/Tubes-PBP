@@ -133,12 +133,15 @@ const [editEmail, setEditEmail] = useState<string>('');
   const fetchPostsPage = async (pageToLoad: number) => {
     try {
       if (!user || !token) return;
-      const res = await axios.get<Post[]>(
+      const res = await axios.get(
         `http://localhost:3000/users/${user.username}/posts?page=${pageToLoad}&limit=${limit}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const newPosts = res.data.map(p => ({ ...p }));
+      const data = res.data;
+      const newPosts: Post[] = data.posts;
+
+      setHasMore(data.hasMore);
 
       if (pageToLoad === 0 && posts.length > 0) {
         const existingIds = new Set(posts.map(p => p.post_id));
