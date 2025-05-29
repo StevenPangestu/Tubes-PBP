@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { Collection, CollectionPost, Post, User, Category, sequelize } from '../models';
+import { Category, Collection, CollectionPost, Post, sequelize, User } from '../models';
 
 export const getAllCollections = async (req: Request, res: Response) => {
   const user = res.locals.user;
@@ -108,25 +108,23 @@ export const getCollectionById = async (req: Request, res: Response) => {
   const user = res.locals.user;
 
   const collection = await Collection.findOne({
-    where: { 
+    where: {
       collection_id: collectionId,
-      user_id: user.user_id 
+      user_id: user.user_id
     },
     include: [{
-      model: CollectionPost,
-      include: [{
-        model: Post,
-        include: [
-          {
-            model: User,
-            attributes: ['user_id', 'username', 'profile_picture']
-          },
-          {
-            model: Category,
-            attributes: ['category_id', 'category_name']
-          }
-        ]
-      }]
+      model: Post, // langsung gunakan model Post dari relasi BelongsToMany
+      through: { attributes: [] }, // hilangkan CollectionPost dari response
+      include: [
+        {
+          model: User,
+          attributes: ['user_id', 'username', 'profile_picture']
+        },
+        {
+          model: Category,
+          attributes: ['category_id', 'category_name']
+        }
+      ]
     }]
   });
 
@@ -137,6 +135,7 @@ export const getCollectionById = async (req: Request, res: Response) => {
 
   return collection;
 };
+
 
 export const deleteCollection = async (req: Request, res: Response) => {
   const user = res.locals.user;
@@ -195,9 +194,10 @@ export const getCollectionsWithPost = async (req: Request, res: Response) => {
   const collections = await Collection.findAll({
     where: { user_id: user.user_id },
     include: [{
-      model: CollectionPost,
+      model: Post,
       where: { post_id },
-      required: true
+      required: true,
+      through: { attributes: [] }, // agar tidak tampil CollectionPost-nya
     }]
   });
 

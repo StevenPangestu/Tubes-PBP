@@ -6,12 +6,11 @@ import authRoutes from "./routes/authRoutes";
 import categoryRoutes from './routes/categoryRoutes';
 import collectionRoutes from "./routes/collectionRoutes";
 import commentRoutes from "./routes/commentRoute";
-import postRoutes from "./routes/postRoutes";
-import userRoutes from "./routes/userRoutes";
 import followRoutes from './routes/followRoutes';
+import postRoutes from "./routes/postRoutes";
 import searchRoutes from './routes/searchRoutes';
+import userRoutes from "./routes/userRoutes";
 
-import { authenticate } from "./middlewares/authMiddleware";
 import { errorHandlerMiddleware } from "./middlewares/errorHandlerMiddleware";
 import { Category, sequelize } from './models';
 
@@ -32,7 +31,7 @@ app.use("/categories", categoryRoutes);
 app.use("/users", userRoutes);
 app.use("/posts", postRoutes);
 app.use("/collections", collectionRoutes);
-app.use("/", commentRoutes);
+app.use("/comments", commentRoutes);
 app.use("/follows", followRoutes);
 app.use("/search", searchRoutes);
 

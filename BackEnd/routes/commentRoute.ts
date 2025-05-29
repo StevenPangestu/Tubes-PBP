@@ -10,9 +10,8 @@ import { controllerWrapper } from '../utils/controllerWrapper';
 
 const router = express.Router();
 
-router.post('/posts/:idPost/comments', authenticate, controllerWrapper(createComment));
-router.get('/posts/:idPost/comments', controllerWrapper(getPostComments));
-router.put('/comments/:idComment', authenticate, controllerWrapper(updateComment));
-router.delete('/comments/:idComment', authenticate, controllerWrapper(deleteComment));
-
+router.post('/:idPost/comments', authenticate, controllerWrapper(createComment));
+router.get('/:idPost/comments', controllerWrapper(getPostComments));
+router.put('/:idComment', authenticate, controllerWrapper(updateComment));
+router.delete('/:idComment', authenticate, controllerWrapper(deleteComment));
 export default router;

@@ -50,10 +50,6 @@ export default function ViewEachCollections() {
         fetchCollection();
     }, [collectionId, navigate]);
 
-    const handlePostClick = (postId: string) => {
-        navigate(`/posts/${postId}`);
-    };
-
     return (
         <Container maxWidth="md">
             <Box>
@@ -106,7 +102,6 @@ export default function ViewEachCollections() {
                                                     boxShadow: 3
                                                 }
                                             }}
-                                            onClick={() => handlePostClick(post.post_id)}
                                         >
                                             <img
                                                 src={`http://localhost:3000${post.image_url}`}

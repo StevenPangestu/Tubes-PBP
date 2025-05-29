@@ -1,16 +1,18 @@
 import {
-  AppBar, Avatar, Button, ButtonGroup, IconButton,
-  TextField, Toolbar, Stack
-} from '@mui/material';
-import {
-  Add, Logout, Search, Collections
+  Add, Logout, Search
 } from '@mui/icons-material';
+import CollectionsBookmarkIcon from '@mui/icons-material/CollectionsBookmark';
+import {
+  AppBar, Avatar, Button, ButtonGroup, IconButton,
+  Stack,
+  TextField, Toolbar
+} from '@mui/material';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { formatProfilePictureUrl } from '../utils/imageUtils';
 import PostCard from '../components/postCard';
 import { Post, User } from '../types';
+import { formatProfilePictureUrl } from '../utils/imageUtils';
 import './home.css';
 
 const Home = () => {
@@ -187,7 +189,7 @@ const Home = () => {
             {user ? (
               <>
                 <IconButton onClick={() => navigate('/collections')}>
-                  <Collections />
+                  <CollectionsBookmarkIcon />
                 </IconButton>
                 <IconButton 
                   onClick={() => navigate('/create')}

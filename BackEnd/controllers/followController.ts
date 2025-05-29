@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { Follow, User } from "../models";
 import { v4 as uuidv4 } from "uuid";
+import { Follow, User } from "../models";
 
 export const followUser = async (req: Request, res: Response) => {
   const follower = res.locals.user;
@@ -112,4 +112,31 @@ export const getFollowStatus = async (req: Request, res: Response) => {
   });
 
   return { isFollowing: !!isFollowing };
+};
+
+export const checkMutualFollowing = async (req: Request, res: Response) => {
+  const currentUser = res.locals.user;
+  const { userId } = req.params;
+  
+  if (currentUser.user_id === userId) {
+    return { mutualFollowing: true };
+  }
+  
+  const userFollowsTarget = await Follow.findOne({
+    where: {
+      follower_id: currentUser.user_id,
+      following_id: userId
+    }
+  });
+  
+  const targetFollowsUser = await Follow.findOne({
+    where: {
+      follower_id: userId,
+      following_id: currentUser.user_id
+    }
+  });
+  
+  return {
+    mutualFollowing: Boolean(userFollowsTarget && targetFollowsUser)
+  };
 };

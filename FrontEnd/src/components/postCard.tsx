@@ -1,17 +1,24 @@
 // PostCard.tsx
-import './postCard.css';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  Favorite, FavoriteBorder, ChatBubble, MoreHoriz, Bookmark
+  Bookmark,
+  ChatBubble,
+  Favorite, FavoriteBorder,
+  MoreHoriz
 } from '@mui/icons-material';
 import {
-  Alert, Box, Button, Dialog, DialogActions, DialogTitle, Menu, MenuItem, Snackbar, TextField, Select, MenuItem as MuiMenuItem, Typography
+  Alert, Box, Button, Dialog, DialogActions, DialogTitle, Menu, MenuItem,
+  MenuItem as MuiMenuItem,
+  Select,
+  Snackbar, TextField,
+  Typography
 } from '@mui/material';
 import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import defaultAvatar from '../assets/default-avatar.png';
-import { Post, Category, Collection } from '../types';
-import { formatProfilePictureUrl, formatPostImageUrl } from '../utils/imageUtils';
+import { Category, Collection, Post } from '../types';
+import { formatPostImageUrl, formatProfilePictureUrl } from '../utils/imageUtils';
+import './postCard.css';
 
 interface PostCardProps {
   post: Post;
@@ -51,7 +58,7 @@ const PostCard = ({
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
   const [loadingBookmark, setLoadingBookmark] = useState(false);
 
-  const [snackbar, setSnackbar] = useState<{ open: boolean, message: string, severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
+  const [snackbar, setSnackbar] = useState<{ open: boolean, message: string, severity: 'success' | 'error' | 'info' }>({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
     setLiked(post.is_liked ?? false);
@@ -203,8 +210,58 @@ const PostCard = ({
     }
   };
 
-  const handleCommentClick = () => {
-    navigate(`/posts/${post.post_id}/comments`);
+    const handleCommentClick = async () => {
+      if (!token) {
+        setSnackbar({ open: true, message: 'Please login to comment', severity: 'error' });
+        return;
+      }
+
+      try {
+        if (currentUser.user_id === post.user_id) {
+          navigate(`/posts/${post.post_id}/comments`);
+          return;
+        }
+        
+        const response = await axios.get(
+          `http://localhost:3000/follows/mutual/${post.user_id}`, 
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+        
+        if (response.data.mutualFollowing) {
+          navigate(`/posts/${post.post_id}/comments`);
+        } else {
+          setSnackbar({
+            open: true,
+            message: 'You can only comment when there is mutual following', 
+            severity: 'info'
+          });
+        }
+      } catch (err) {
+        console.error('Error checking comment permission:', err);
+        
+        try {
+          const response = await axios.get(
+            `http://localhost:3000/follows/check-mutual/${post.user_id}`, 
+            {
+              headers: { Authorization: `Bearer ${token}` }
+            }
+          );
+          
+          if (response.data.mutualFollowing) {
+            navigate(`/posts/${post.post_id}/comments`);
+          } else {
+            setSnackbar({
+              open: true,
+              message: 'You can only comment when there is mutual following', 
+              severity: 'info'
+            });
+          }
+        } catch (fallbackErr) {
+          setSnackbar({ open: true, message: 'Failed to check comment permissions', severity: 'error' });
+        }
+      }
   };
 
   return (
