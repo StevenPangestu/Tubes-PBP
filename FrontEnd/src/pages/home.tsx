@@ -1,15 +1,14 @@
-import { Add, Collections, Logout, Search } from '@mui/icons-material';
 import {
-  AppBar,
-  Avatar,
-  Button,
-  IconButton,
-  TextField,
-  Toolbar,
+  AppBar, Avatar, Button, ButtonGroup, IconButton,
+  TextField, Toolbar, Stack
 } from '@mui/material';
+import {
+  Add, Logout, Search, Collections
+} from '@mui/icons-material';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatProfilePictureUrl } from '../utils/imageUtils';
 import PostCard from '../components/postCard';
 import { Post, User } from '../types';
 import './home.css';
@@ -22,13 +21,19 @@ const Home = () => {
   const [error, setError] = useState('');
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [search, setSearch] = useState('');
   const limit = 3;
+
+  const [activeTab, setActiveTab] = useState<'home' | 'trending'>('home');
+  const [trendingPosts, setTrendingPosts] = useState<Post[]>([]);
+  const [trendingLoading, setTrendingLoading] = useState(false);
+  const [trendingError, setTrendingError] = useState('');
+  const [trendingHours, setTrendingHours] = useState(24);
 
   useEffect(() => {
     const loadUser = async () => {
       const storedUser = localStorage.getItem('user');
       const token = localStorage.getItem('token');
-
       if (!storedUser || !token) return;
 
       const parsedUser = JSON.parse(storedUser);
@@ -36,9 +41,7 @@ const Home = () => {
       try {
         const res = await axios.get<User>(
           `http://localhost:3000/users/${parsedUser.username}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         setUser(res.data);
         localStorage.setItem('user', JSON.stringify(res.data));
@@ -53,29 +56,25 @@ const Home = () => {
     loadUser();
   }, []);
 
-  const fetchPosts = async (pageToLoad: number) => {
+  const fetchPosts = async (pageToLoad: number, searchTerm?: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get<Post[]>(
-        `http://localhost:3000/posts?page=${pageToLoad}&limit=${limit}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      let url = `http://localhost:3000/posts?page=${pageToLoad}&limit=${limit}`;
+      if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
+
+      const response = await axios.get<Post[]>(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       const newPosts = response.data;
 
       setPosts(prev => {
         const existingIds = new Set(prev.map(p => p.post_id));
         const uniqueNew = newPosts.filter(p => !existingIds.has(p.post_id));
-        return [...prev, ...uniqueNew];
+        return pageToLoad === 0 ? newPosts : [...prev, ...uniqueNew];
       });
 
-      if (newPosts.length < limit) {
-        setHasMore(false);
-      }
+      setHasMore(newPosts.length >= limit);
     } catch (err: any) {
       console.error(err);
       setError('Login to see posts');
@@ -84,14 +83,43 @@ const Home = () => {
     }
   };
 
+  const fetchTrending = async (hours: number, searchTerm?: string) => {
+    setTrendingLoading(true);
+    setTrendingError('');
+    try {
+      let url = `http://localhost:3000/posts/trending?hours=${hours}`;
+      if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
+      const token = localStorage.getItem('token');
+
+      const res = await axios.get<Post[]>(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      setTrendingPosts(res.data);
+    } catch (err) {
+      setTrendingError('Login to see trending posts');
+    } finally {
+      setTrendingLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchPosts(0);
-  }, []);
+    if (activeTab === 'home') {
+      setLoading(true);
+      fetchPosts(0, search);
+      setPage(0);
+    }
+  }, [activeTab, search]);
+
+  useEffect(() => {
+    if (activeTab === 'trending') {
+      fetchTrending(trendingHours, search);
+    }
+  }, [activeTab, trendingHours, search]);
 
   const handleLoadMore = () => {
     const nextPage = page + 1;
     setPage(nextPage);
-    fetchPosts(nextPage);
+    fetchPosts(nextPage, search);
   };
 
   const handleLogout = () => {
@@ -100,7 +128,19 @@ const Home = () => {
     setUser(null);
     navigate('/login');
   };
-  
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+  };
+
+  const handlePostDeleted = (post_id: string) => {
+    setPosts(prev => prev.filter(post => post.post_id !== post_id));
+  };
+
+  const handleTrendingPostDeleted = (post_id: string) => {
+    setTrendingPosts(prev => prev.filter(post => post.post_id !== post_id));
+  };
+
   return (
     <div className="home-container">
       <AppBar position="sticky" color="inherit" elevation={1}>
@@ -112,6 +152,8 @@ const Home = () => {
               placeholder="Search..."
               size="small"
               fullWidth
+              value={search}
+              onChange={handleSearchChange}
               InputProps={{
                 startAdornment: <Search fontSize="small" color="action" />,
               }}
@@ -121,42 +163,53 @@ const Home = () => {
           <div className="nav-actions">
             {user ? (
               <>
+                <IconButton onClick={() => navigate('/collections')}>
+                  <Collections />
+                </IconButton>
                 <IconButton 
-                    onClick={() => {
-                        const token = localStorage.getItem('token');
-                        if (token) {
-                            navigate('/collections');
-                        } else {
-                            navigate('/login');
-                        }
-                    }}
+                  onClick={() => navigate('/create')}
+                  sx={{ color: '#ff5700' }}
                 >
-                    <Collections />
-                </IconButton>
-                <IconButton onClick={() => navigate('/create')}>
                   <Add />
-                </IconButton>
-                <IconButton onClick={() => navigate(`/users/${user.username}`)}>
+                </IconButton>                <IconButton onClick={() => navigate(`/profile/${user.username}`)}>
                   <Avatar
-                    src={
-                      user.profile_picture
-                        ? `http://localhost:3000${user.profile_picture}`
-                        : '/default-avatar.png'
-                    }
+                    src={formatProfilePictureUrl(user.profile_picture, '/default-avatar.png')}
                     alt={user.username}
                     sx={{ width: 32, height: 32 }}
                   />
                 </IconButton>
-                <IconButton onClick={handleLogout}>
+                <IconButton onClick={handleLogout} sx={{ color: '#666' }}>
                   <Logout fontSize="small" />
                 </IconButton>
               </>
             ) : (
               <>
-                <Button onClick={() => navigate('/login')} variant="outlined" size="small" sx={{ mr: 1 }}>
+                <Button
+                  onClick={() => navigate('/login')}
+                  variant="outlined"
+                  size="small"
+                  sx={{
+                    mr: 1,
+                    borderColor: '#ff5700',
+                    color: '#ff5700',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255,87,0,0.1)',
+                    }
+                  }}
+                >
                   Login
                 </Button>
-                <Button onClick={() => navigate('/register')} variant="contained" size="small">
+                <Button
+                  onClick={() => navigate('/register')}
+                  variant="contained"
+                  size="small"
+                  sx={{
+                    backgroundColor: '#ff5700',
+                    '&:hover': {
+                      backgroundColor: '#ff4400'
+                    }
+                  }}
+                >
                   Register
                 </Button>
               </>
@@ -165,27 +218,90 @@ const Home = () => {
         </Toolbar>
       </AppBar>
 
-      <main className="posts-container">
-        {loading && posts.length === 0 ? (
-          <div className="loading">Loading posts...</div>
-        ) : error ? (
-          <div className="error">{error}</div>
-        ) : (
-          <>
-            <div className="posts-grid">
-              {posts.map((post) => (
-                <PostCard key={post.post_id} post={post} />
-              ))}
-            </div>
+      <div className="tab-switcher" style={{ display: 'flex', gap: 8, margin: '18px 0', justifyContent: 'center' }}>
+        <Button
+          variant={activeTab === 'home' ? 'contained' : 'outlined'}
+          onClick={() => setActiveTab('home')}
+          sx={{ textTransform: 'none', fontWeight: 600 }}
+        >
+          For You
+        </Button>
+        <Button
+          variant={activeTab === 'trending' ? 'contained' : 'outlined'}
+          onClick={() => setActiveTab('trending')}
+          sx={{ textTransform: 'none', fontWeight: 600 }}
+        >
+          🔥 Trending
+        </Button>
+        {activeTab === 'trending' && (
+          <ButtonGroup sx={{ ml: 2 }}>
+            {[24, 168, 720].map(h => (
+              <Button
+                key={h}
+                variant={trendingHours === h ? 'contained' : 'outlined'}
+                onClick={() => setTrendingHours(h)}
+              >
+                {h === 24 ? 'Today' : h === 168 ? 'Week' : 'Month'}
+              </Button>
+            ))}
+          </ButtonGroup>
+        )}
+      </div>
 
-            {hasMore && (
-              <div style={{ textAlign: 'center', marginTop: '16px' }}>
-                <Button variant="outlined" onClick={handleLoadMore}>
-                  Load More
-                </Button>
+      <main className="posts-container">
+        {activeTab === 'home' ? (
+          loading && posts.length === 0 ? (
+            <div className="loading">Loading posts...</div>
+          ) : error ? (
+            <div className="error">{error}</div>
+          ) : (
+            <>
+              <div className="posts-grid">
+                {posts.map(post => (
+                  <PostCard
+                    key={post.post_id}
+                    post={post}
+                    onPostDeleted={handlePostDeleted}
+                    onPostUpdate={(updated) =>
+                      setPosts(prev => prev.map(p => p.post_id === updated.post_id ? updated : p))
+                    }
+                  />
+                ))}
               </div>
-            )}
-          </>
+              {hasMore && (
+                <div className="load-more-container">
+                  <Button variant="outlined" onClick={handleLoadMore}>
+                    Load More
+                  </Button>
+                </div>
+              )}
+            </>
+          )
+        ) : (
+          trendingLoading ? (
+            <div className="loading">Loading trending posts...</div>
+          ) : trendingError ? (
+            <div className="error">{trendingError}</div>
+          ) : trendingPosts.length === 0 ? (
+            <div className="error">No trending posts for this period.</div>
+          ) : (
+            <Stack spacing={3} alignItems="center">
+              {trendingPosts.map(post => (
+                <PostCard
+                  key={post.post_id}
+                  post={post}
+                  showTrendingInfo={true}
+                  trendingLikesLabel={`likes ${trendingHours}h`}
+                  onPostDeleted={handleTrendingPostDeleted}
+                  onPostUpdate={(updated) =>
+                    setTrendingPosts(prev =>
+                      prev.map(p => p.post_id === updated.post_id ? updated : p)
+                    )
+                  }
+                />
+              ))}
+            </Stack>
+          )
         )}
       </main>
     </div>

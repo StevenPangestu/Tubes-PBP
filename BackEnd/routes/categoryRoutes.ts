@@ -1,17 +1,14 @@
 import express from 'express';
+import { controllerWrapper } from '../utils/controllerWrapper';
 import { Category } from '../models/Category';
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
-  try {
-    const categories = await Category.findAll({
-      order: [['createdAt', 'ASC']],
-    });
-    res.status(200).json(categories);
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch categories', error });
-  }
-});
+router.get('/', controllerWrapper(async (req, res) => {
+  const categories = await Category.findAll({
+    order: [['createdAt', 'ASC']],
+  });
+  return categories;
+}));
 
 export default router;

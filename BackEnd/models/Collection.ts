@@ -15,7 +15,9 @@ import { User } from "./User";
 
 @Table({
   tableName: "Collection",
-  timestamps: false
+  timestamps: true,
+  createdAt: "createdAt",
+  updatedAt: false,
 })
 export class Collection extends Model {
   //collection_id
@@ -48,10 +50,13 @@ export class Collection extends Model {
   //createdAt
   @Column({
     type: DataType.DATE,
-    defaultValue: DataType.NOW,
   })
   declare createdAt: Date;
 
-  @BelongsToMany(() => Post, () => CollectionPost)
-  declare posts?: Post[];
+  @BelongsToMany(() => Post, {
+    through: () => CollectionPost,
+    foreignKey: 'collection_id',
+    otherKey: 'post_id'
+  })
+  declare posts: Post[];
 }

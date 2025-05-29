@@ -61,15 +61,13 @@ function App() {
           <PrivateRoute>
             <CreatePost />
           </PrivateRoute>
-        } />
-
-        <Route path="/profile" element={
+        } />        <Route path="/profile" element={
           <PrivateRoute>
             <Profile />
           </PrivateRoute>
         } />
-
-        <Route path="/users/:username" element={
+        
+        <Route path="/profile/:username" element={
           <PrivateRoute>
             <Profile />
           </PrivateRoute>

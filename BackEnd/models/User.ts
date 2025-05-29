@@ -8,7 +8,7 @@ import {
   HasMany,
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
-// import { Follow } from './Follow';
+import { Follow } from './Follow';
 import { Post } from './Post';
 
 @Table({
@@ -24,12 +24,14 @@ export class User extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: false,
+    unique: true,
   })
   declare username: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
+    unique: true,
   })
   declare email: string;
 
@@ -48,9 +50,9 @@ export class User extends Model {
   @HasMany(() => Post)
   declare posts: Post[];
 
-  // @HasMany(() => Follow, 'follower_id')
-  // declare following: Follow[];
+  @HasMany(() => Follow, 'follower_id')
+  declare following: Follow[];
   
-  // @HasMany(() => Follow, 'following_id')
-  // declare followers: Follow[];
+  @HasMany(() => Follow, 'following_id')
+  declare followers: Follow[];
 }

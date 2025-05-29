@@ -13,8 +13,9 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import './createComment.css';
+import { useNavigate } from 'react-router-dom';
 
-    interface CommentType {
+interface CommentType {
     comment_id: string;
     content: string;
     user: {
@@ -28,6 +29,7 @@ import './createComment.css';
 
     export default function Comments() {
     const { idPost } = useParams();
+    const navigate = useNavigate();
     const [comments, setComments] = useState<CommentType[]>([]);
     const [newComment, setNewComment] = useState('');
     const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -71,13 +73,13 @@ import './createComment.css';
     useEffect(() => {
         fetchComments();
     }, [idPost]);
-
+    
     useEffect(() => {
         if (replyTo && replyingToUser) {
             setNewComment(`@${replyingToUser.username}`);
         }
     }, [replyTo, replyingToUser]);
-
+    
     const handleComment = async () => {
         try {
             setLoading(true);
@@ -88,7 +90,7 @@ import './createComment.css';
                 setError('Please login to comment');
                 return;
             }
-
+            
             if(!newComment.trim()) {
                 setError('Comment cannot be empty');
                 return;
@@ -104,7 +106,7 @@ import './createComment.css';
                     headers: { Authorization: `Bearer ${token}` }
                 }
             );
-
+            
             setNewComment('');
             setReplyTo(null);
             setReplyingToUser(null);
@@ -160,12 +162,12 @@ import './createComment.css';
             setError('Failed to delete comment');
         }
     };
-
+    
     const formatCommentText = (text: string) => {
         return text.split(' ').map((word, idx) => {
             if (word.startsWith('@')) {
-            const username = word.slice(1);
-            return (
+                const username = word.slice(1);
+                return (
                 <a
                 key={idx}
                 href={`/users/${username}`}
@@ -333,13 +335,14 @@ import './createComment.css';
     return (
         <Container maxWidth="md">
             <Box className="comments-container">
-                <Button
-                    variant="outlined"
-                    sx={{ mb: 2 }}
-                    onClick={() => (window.location.href = '/home')}
-                >
-                    Back to Home
-                </Button>
+            <Button
+                variant="outlined"
+                sx={{ mb: 2 }}
+                onClick={() => navigate('/home')}
+            >
+                Back to Home
+            </Button>
+
                 <Typography variant="h5" sx={{ mb: 2 }}>
                     Comments
                 </Typography>

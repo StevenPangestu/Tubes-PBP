@@ -1,17 +1,15 @@
 import express from "express";
-import { createPost, getAllPosts, getPostCommentCount, updateCommentCount } from "../controllers/postController";
+import { getAllPosts, createPost, deletePost, updatePost, getTrendingPosts } from "../controllers/postController";
+import { postUpload } from '../middlewares/uploadMiddleware';
 import { authenticate } from "../middlewares/authMiddleware";
-import { upload } from "../middlewares/uploadMiddleware";
+import { controllerWrapper } from "../utils/controllerWrapper";
 
 const router = express.Router();
 
-router.get("/", getAllPosts);
-
-router.post("/", upload.single("image"), createPost);
-
-router.post('/:idPost/update-comment-count', authenticate, updateCommentCount);
-
-router.get('/:idPost/comment-count', authenticate, getPostCommentCount);
+router.get("/", authenticate, controllerWrapper(getAllPosts));
+router.get("/trending", authenticate, controllerWrapper(getTrendingPosts));
+router.post("/", authenticate, postUpload.single("image"), controllerWrapper(createPost));
+router.delete("/:post_id", authenticate, controllerWrapper(deletePost));
+router.put("/:post_id", authenticate, controllerWrapper(updatePost));
 
 export default router;
-

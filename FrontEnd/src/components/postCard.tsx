@@ -1,352 +1,328 @@
-import { Bookmark, ChatBubble, Favorite, MoreHoriz } from '@mui/icons-material';
-import { Alert, Box, Button, Dialog, Snackbar, Typography } from '@mui/material';
-import axios from 'axios';
+// PostCard.tsx
+import './postCard.css';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Collection, Post } from '../types';
-import './postCard.css';
+import {
+  Favorite, FavoriteBorder, ChatBubble, MoreHoriz, Bookmark
+} from '@mui/icons-material';
+import {
+  Alert, Box, Button, Dialog, DialogActions, DialogTitle, Menu, MenuItem, Snackbar, TextField, Select, MenuItem as MuiMenuItem, Typography
+} from '@mui/material';
+import axios from 'axios';
+import defaultAvatar from '../assets/default-avatar.png';
+import { Post, Category, Collection } from '../types';
+import { formatProfilePictureUrl, formatPostImageUrl } from '../utils/imageUtils';
 
 interface PostCardProps {
   post: Post;
+  onPostDeleted?: (post_id: string) => void;
+  onPostUpdate?: (updatedPost: Post) => void;
+  showTrendingInfo?: boolean;
+  trendingLikesLabel?: string;
 }
 
-const PostCard = ({ post }: PostCardProps) => {
-  const [commentCount, setCommentCount] = useState(0);
+const PostCard = ({
+  post,
+  onPostDeleted,
+  onPostUpdate,
+  showTrendingInfo,
+  trendingLikesLabel
+}: PostCardProps) => {
   const navigate = useNavigate();
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const token = localStorage.getItem('token');
+  const isOwner = currentUser.user_id === post.user_id;
 
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editCaption, setEditCaption] = useState(post.caption);
+  const [editCategoryId, setEditCategoryId] = useState(post.category_id);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  const [liked, setLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+  const [commentCount] = useState(Number(post.comments_count || 0));
+  const [isBookmarked, setIsBookmarked] = useState(Boolean(post.is_bookmarked));
   const [collections, setCollections] = useState<Collection[]>([]);
+  const [collectionsWithPost, setCollectionsWithPost] = useState<Collection[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
   const [dialogMode, setDialogMode] = useState<'save' | 'unbookmarked'>('save');
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
   const [loadingBookmark, setLoadingBookmark] = useState(false);
-  const [collectionsWithPost, setCollectionsWithPost] = useState<Collection[]>([]);
+
+  const [snackbar, setSnackbar] = useState<{ open: boolean, message: string, severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
-    fetchCollections();
-    checkIfPostBookmarked();
+    setLiked(post.is_liked ?? false);
+    setLikesCount(Number(post.likes_count) || 0);
   }, [post.post_id]);
 
-  const fetchCollections = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
+  useEffect(() => {
+    setIsBookmarked(post.is_bookmarked ?? false);
+  }, [post.post_id, post.is_bookmarked]);
 
-      const response = await axios.get('http://localhost:3000/collections', {
+  useEffect(() => {
+  const fetchCategories = async () => {
+    try {
+      const res = await axios.get("http://localhost:3000/categories", {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setCollections(response.data);
+      setCategories(res.data);
     } catch (err) {
-      console.error('Error fetching collections:', err);
+      console.error("Failed to fetch categories", err);
     }
   };
 
-  const checkIfPostBookmarked = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
+  if (editing) {
+    fetchCategories();
+  }
+}, [editing]);
 
-      const response = await axios.get(
-        `http://localhost:3000/collections/check-post/${post.post_id}`,
-        { headers: { Authorization: `Bearer ${token}` }}
-      );
-      setIsBookmarked(response.data.isBookmarked);
+  const handleLikeToggle = async () => {
+    if (!token) return;
+    const updatedPost = { ...post };
+    try {
+      if (liked) {
+        await axios.delete(`http://localhost:3000/posts/${post.post_id}/like`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setLiked(false);
+        setLikesCount(prev => prev - 1);
+        updatedPost.is_liked = false;
+        updatedPost.likes_count = (Number(updatedPost.likes_count || 1) - 1);
+      } else {
+        await axios.post(`http://localhost:3000/posts/${post.post_id}/like`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setLiked(true);
+        setLikesCount(prev => prev + 1);
+        updatedPost.is_liked = true;
+        updatedPost.likes_count = (Number(updatedPost.likes_count || 0) + 1);
+      }
+      onPostUpdate?.(updatedPost);
     } catch (err) {
-      console.error('Error checking bookmark status:', err);
+      console.error('Like toggle failed:', err);
     }
   };
 
-  useEffect(() => {
-    fetchCollections();
-    checkIfPostBookmarked();
-  }, [post.post_id]);
-
-  const fetchCollectionsWithPost = async () => {
+  const handleDelete = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      const response = await axios.get(`http://localhost:3000/collections/with-posts/${post.post_id}`, {
+      await axios.delete(`http://localhost:3000/posts/${post.post_id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setCollectionsWithPost(response.data);
+      setSnackbar({ open: true, message: 'Post deleted!', severity: 'success' });
+      onPostDeleted?.(post.post_id);
     } catch (err) {
-      console.error('Error fetching collections with post:', err);
+      console.error('Delete failed:', err);
+      setSnackbar({ open: true, message: 'Delete failed.', severity: 'error' });
+    }
+    setDeleteDialogOpen(false);
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      await axios.put(`http://localhost:3000/posts/${post.post_id}`, {
+        caption: editCaption,
+        category_id: editCategoryId
+      }, { headers: { Authorization: `Bearer ${token}` } });
+
+      const updatedPost = {
+        ...post,
+        caption: editCaption,
+        category_id: editCategoryId,
+        category: categories.find(cat => cat.category_id === editCategoryId) || post.category
+      };
+
+      setEditing(false);
+      setSnackbar({ open: true, message: 'Post updated successfully!', severity: 'success' });
+      onPostUpdate?.(updatedPost);
+    } catch (err) {
+      console.error('Edit failed:', err);
+      setSnackbar({ open: true, message: 'Update failed.', severity: 'error' });
     }
   };
 
   const handleBookmarkClick = () => {
-    if (isBookmarked) {
-      setDialogMode('unbookmarked');
-      fetchCollectionsWithPost();
-    } else {
-      setDialogMode('save');
-      fetchCollections();
-    }
+    setDialogMode(isBookmarked ? 'unbookmarked' : 'save');
+    isBookmarked ? fetchCollectionsWithPost() : fetchCollections();
     setSelectedCollectionId(null);
     setOpenDialog(true);
   };
 
-  const handleUnbookmark = async (collectionId?: string) => {
-    
-    try {
-      setLoadingBookmark(true);
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      const idToUse = collectionId || selectedCollectionId;
-
-      if (!idToUse) {
-        setSnackbarMessage('Please select a collection to remove bookmark');
-        setSnackbarOpen(true);
-        return;
-      }
-
-      await axios.delete(
-        `http://localhost:3000/collections/${idToUse}/posts/${post.post_id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setIsBookmarked(false);
-      setOpenDialog(false);
-      setSnackbarMessage('Post removed from collection');
-      setSnackbarOpen(true);
-    } catch (err) {
-      console.error('Error unbookmarking post:', err);
-      setSnackbarMessage('Failed to remove bookmark');
-      setSnackbarOpen(true);
-    } finally {
-      setLoadingBookmark(false);
-    }
+  const fetchCollections = async () => {
+    if (!token) return;
+    const res = await axios.get('http://localhost:3000/collections', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setCollections(res.data);
   };
 
+  const fetchCollectionsWithPost = async () => {
+    if (!token) return;
+    const res = await axios.get(`http://localhost:3000/collections/with-posts/${post.post_id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setCollectionsWithPost(res.data);
+  };
 
   const handleCollectionSelect = async (collectionId: string) => {
+    if (!token) return;
     try {
       setLoadingBookmark(true);
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      await axios.post(
-        `http://localhost:3000/collections/${collectionId}/posts`,
-        { post_id: post.post_id },
-        { headers: { Authorization: `Bearer ${token}` }}
-      );
-
+      await axios.post(`http://localhost:3000/collections/${collectionId}/posts`, {
+        post_id: post.post_id
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      setSnackbar({ open: true, message: 'Post saved!', severity: 'success' });
       setIsBookmarked(true);
-      setOpenDialog(false);
-      setSnackbarMessage('Post saved to collection successfully!');
-      setSnackbarOpen(true);
-    } catch (err) {
-      console.error('Error saving to collection:', err);
-      setSnackbarMessage('Failed to save post to collection');
-      setSnackbarOpen(true);
+    } catch {
+      setSnackbar({ open: true, message: 'Failed to save post.', severity: 'error' });
     } finally {
+      setOpenDialog(false);
       setLoadingBookmark(false);
     }
   };
 
-  const fetchCommentCount = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
+  const handleUnbookmark = async (collectionId?: string) => {
+    if (!token) return;
+    try {
+      setLoadingBookmark(true);
+      const id = collectionId || selectedCollectionId;
+      if (!id) return;
 
-        const response = await axios.get(
-          `http://localhost:3000/posts/${post.post_id}/comment-count`,
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
-        
-        // Make sure we're accessing the correct property from the response
-        if (response.data && (response.data.count !== undefined)) {
-          setCommentCount(response.data.count);
-        }
-        
-        // Add console.log for debugging
-        console.log('Comment count response:', response.data);
-      } catch (err) {
-        console.error('Error fetching comment count:', err);
-        // Add more detailed error logging
-        if (axios.isAxiosError(err)) {
-          console.error('Response data:', err.response?.data);
-        }
-      }
+      await axios.delete(`http://localhost:3000/collections/${id}/posts/${post.post_id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsBookmarked(false);
+      setSnackbar({ open: true, message: 'Removed from collection', severity: 'success' });
+    } catch {
+      setSnackbar({ open: true, message: 'Failed to remove bookmark.', severity: 'error' });
+    } finally {
+      setOpenDialog(false);
+      setLoadingBookmark(false);
+    }
   };
-
-  // Add a console.log to verify the post_id
-  useEffect(() => {
-      console.log('Fetching comments for post:', post.post_id);
-      fetchCommentCount();
-  }, [post.post_id]);
-
-  useEffect(() => {
-    fetchCommentCount();
-  }, [post.post_id]);
 
   const handleCommentClick = () => {
     navigate(`/posts/${post.post_id}/comments`);
   };
 
-
   return (
-    <div className="post-card">
-      <div className="post-header">
-        <div className="user-info">
+    <div className="post-card">      <div className="post-header">        <div 
+          className="user-info" 
+          onClick={() => navigate(`/profile/${post.user?.username}`)}
+          style={{ cursor: 'pointer' }}
+        >
           <img 
-            src={post.user?.profile_picture || '/default-avatar.png'}
-            alt={post.user?.username || 'user'} 
+            src={formatProfilePictureUrl(post.user?.profile_picture, defaultAvatar)}
+            alt="user" 
             className="user-avatar" 
           />
           <span className="username">{post.user?.username || 'unknown'}</span>
         </div>
-        <button className="post-menu">
-          <MoreHoriz />
-        </button>
-      </div>
-      
-      <div className="post-image-container">
-        <img 
-          src={`http://localhost:3000${post.image_url}`} 
-          alt={post.caption}
-          className="post-image"
-        />
-      </div>
-      
-      <div className="post-actions">
-        <button className="action-btn">
-          <Favorite /> {post.likes_count || 0}
-        </button>
-        <button className="action-btn" onClick={handleCommentClick}>
-          <ChatBubble /> {commentCount !== undefined ? commentCount : '...'}
-        </button>
-        <div className="action-spacer"></div>
-        <button
-          className={`action-btn ${isBookmarked ? 'bookmarked' : ''}`}
-          onClick={handleBookmarkClick}
-          disabled={loadingBookmark}
-          title={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
-        >
-          <Bookmark />
-        </button>
-      </div>
-
-      <Dialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        sx={{
-          '& .MuiDialog-paper': {
-            padding: 2,
-            minWidth: '300px'
-          }
-        }}
-      >
-        {dialogMode === 'save' ? (
+        {isOwner && (
           <>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Save to Collection
-            </Typography>
-
-            {collections.length > 0 ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {collections.map((collection) => (
-                  <Button
-                    key={collection.collection_id}
-                    variant="outlined"
-                    fullWidth
-                    onClick={() => handleCollectionSelect(collection.collection_id)}
-                    disabled={loadingBookmark}
-                    sx={{
-                      justifyContent: 'flex-start',
-                      textAlign: 'left',
-                      textTransform: 'none'
-                    }}
-                  >
-                    {collection.collection_name}
-                  </Button>
-                ))}
-              </Box>
-            ) : (
-              <Typography color="text.secondary">
-                No collections found. Create one first!
-              </Typography>
-            )}
-          </>
-        ) : (
-          <>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Remove from Collection
-            </Typography>
-
-            {collectionsWithPost.length > 0 ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {collectionsWithPost.map((collection) => (
-                  <Button
-                    key={collection.collection_id}
-                    variant="outlined"
-                    fullWidth
-                    onClick={() => {
-                      handleUnbookmark(collection.collection_id);
-                    }}
-                    disabled={loadingBookmark}
-                    sx={{
-                      justifyContent: 'flex-start',
-                      textAlign: 'left',
-                      textTransform: 'none'
-                    }}
-                  >
-                    {collection.collection_name}
-                  </Button>
-                ))}
-              </Box>
-            ) : (
-              <Typography color="text.secondary">
-                This post is not saved in any collection.
-              </Typography>
-            )}
+            <button className="post-menu" onClick={(e) => setAnchorEl(e.currentTarget)}>
+              <MoreHoriz />
+            </button>
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
+              <MenuItem onClick={() => { setEditing(true); setAnchorEl(null); }}>Edit Post</MenuItem>
+              <MenuItem onClick={() => { setDeleteDialogOpen(true); setAnchorEl(null); }}>Delete Post</MenuItem>
+            </Menu>
           </>
         )}
+      </div>
+
+      {showTrendingInfo && typeof post.recent_likes !== 'undefined' && (
+        <div className="trending-badge">🔥 {post.recent_likes} {trendingLikesLabel || 'likes'}</div>
+      )}      <div className="post-image-container">
+        <img src={formatPostImageUrl(post.image_url)} alt={post.caption} className="post-image" />
+      </div>
+
+      <div className="post-actions">
+        <button className="action-btn" onClick={handleLikeToggle}>
+          {liked ? <Favorite style={{ color: '#ff5700' }} /> : <FavoriteBorder />} {likesCount}
+        </button>
+        <button className="action-btn" onClick={handleCommentClick}>
+          <ChatBubble /> {commentCount}
+        </button>
+        <div className="action-spacer" />
+        <button className="action-btn" onClick={handleBookmarkClick} disabled={loadingBookmark}>
+          {isBookmarked
+            ? <Bookmark style={{ color: '#ff5700' }} />
+            : <Bookmark />}
+        </button>
+      </div>
+
+      {editing ? (
+        <Box padding={2}>
+          <TextField value={editCaption} onChange={e => setEditCaption(e.target.value)} fullWidth label="Caption" size="small" />
+          <Select value={editCategoryId} onChange={e => setEditCategoryId(e.target.value)} fullWidth size="small" displayEmpty>
+            {categories.map(cat => (
+              <MuiMenuItem key={cat.category_id} value={cat.category_id}>{cat.category_name}</MuiMenuItem>
+            ))}
+          </Select>
+          <Box display="flex" gap={1} marginTop={1}>
+            <Button variant="contained" size="small" onClick={handleSaveEdit}>Save</Button>
+            <Button variant="outlined" size="small" onClick={() => setEditing(false)}>Cancel</Button>
+          </Box>
+        </Box>
+      ) : (
+        <>          <div className="post-caption">
+            <span 
+              className="caption-user" 
+              onClick={() => navigate(`/profile/${post.user?.username}`)}
+              style={{ cursor: 'pointer' }}
+            >
+              @{post.user?.username}
+            </span> <span className="caption-text">{post.caption}</span>
+          </div>
+          {post.category && (
+            <div className="post-category">#{post.category.category_name.toLowerCase()}</div>
+          )}
+        </>
+      )}
+
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>Are you sure you want to delete this post?</DialogTitle>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button color="error" onClick={handleDelete}>Delete</Button>
+        </DialogActions>
       </Dialog>
 
-      {/* Success/Error Snackbar */}
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        <Box p={2}>
+          <Typography variant="h6" gutterBottom>
+            {dialogMode === 'save' ? 'Save to Collection' : 'Remove from Collection'}
+          </Typography>
+          {(dialogMode === 'save' ? collections : collectionsWithPost).map(collection => (
+            <Button
+              key={collection.collection_id}
+              variant="outlined"
+              fullWidth
+              onClick={() => dialogMode === 'save'
+                ? handleCollectionSelect(collection.collection_id)
+                : handleUnbookmark(collection.collection_id)}
+              sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
+              disabled={loadingBookmark}
+            >
+              {collection.collection_name}
+            </Button>
+          ))}
+        </Box>
+      </Dialog>
+
       <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={4000}
-        onClose={() => setSnackbarOpen(false)}
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        sx={{
-          position: 'fixed',
-          bottom: '24px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 2000,
-          '& .MuiPaper-root': {
-            minWidth: '288px',
-            boxShadow: '0 3px 5px -1px rgba(0,0,0,0.2), 0 6px 10px 0 rgba(0,0,0,0.14), 0 1px 18px 0 rgba(0,0,0,0.12)'
-          }
-        }}
       >
-        <Alert 
-          onClose={() => setSnackbarOpen(false)} 
-          severity="success" 
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
+        <Alert severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
         </Alert>
       </Snackbar>
-      
-      <div className="post-caption">
-        <span className="caption-user">@{post.user?.username || 'unknown'}</span>
-        <span className="caption-text">{post.caption}</span>
-      </div>
-      
-      {post.category && (
-        <div className="post-category">
-          #{post.category.category_name.toLowerCase()}
-        </div>
-      )}
     </div>
   );
 };

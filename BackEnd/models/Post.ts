@@ -38,7 +38,7 @@ export class Post extends Model {
   })
   declare user_id: string;
 
-  @BelongsTo(() => User)
+  @BelongsTo(() => User, { as: 'user' })
   declare user: User;
 
   //image_url

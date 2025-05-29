@@ -1,27 +1,31 @@
 import { Sequelize } from 'sequelize-typescript';
-import { Category } from './Category';
-import { Collection } from './Collection';
-import { CollectionPost } from './CollectionPost';
+import { User } from './User';
+import { Session } from './Session';
+import { Post } from './Post';
 import { Comment } from './Comment';
 import { Like } from './Like';
-import { Post } from './Post';
-import { Session } from './Session';
-import { User } from './User';
-// import { Follow } from './Follow';
-
+import { Collection } from './Collection';
+import { CollectionPost } from './CollectionPost';
+import { Category } from './Category';
+import { Follow } from './Follow';
 
 export const sequelize = new Sequelize({
   dialect: 'postgres',
   host: '127.0.0.1',
   username: 'postgres',
-  password: 'rja021005',
-  database: 'tubespbp',
-  models: [User, Session, Post, Comment, Like, Collection, CollectionPost, Category],
+  password: '0810',
+  database: 'tubespbp1',
+  models: [User, Session, Post, Comment, Like, Collection, CollectionPost, Category, Follow],
 });
 
 export {
-  Category, Collection,
-  CollectionPost, Comment,
-  Like, Post, Session, User
+  User,
+  Session,
+  Post,
+  Comment,
+  Like,
+  Collection,
+  CollectionPost,
+  Category,
+  Follow
 };
-

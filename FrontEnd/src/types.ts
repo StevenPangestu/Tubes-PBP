@@ -1,13 +1,16 @@
 export interface User {
     user_id: string; // UUID
     username: string;
-    email?: string;
+    email: string;
     profile_picture?: string | null;
     bio?: string | null;
     createdAt?: string;
     updatedAt?: string;
 
     posts?: Post[];
+    followersCount?: number;
+    followingCount?: number;
+    isFollowing?: boolean;
   }
   
   export interface Category {
@@ -30,6 +33,8 @@ export interface User {
     likes_count?: number;
     comments_count?: number;
     is_liked?: boolean;
+    recent_likes?: number; 
+    is_bookmarked?: boolean;
   }
   
   export interface Comment {

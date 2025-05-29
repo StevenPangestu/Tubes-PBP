@@ -8,8 +8,11 @@ import collectionRoutes from "./routes/collectionRoutes";
 import commentRoutes from "./routes/commentRoute";
 import postRoutes from "./routes/postRoutes";
 import userRoutes from "./routes/userRoutes";
+import likeRoutes from './routes/likeRoutes';
+import followRoutes from './routes/followRoutes';
 
 import { authenticate } from "./middlewares/authMiddleware";
+import { errorHandlerMiddleware } from "./middlewares/errorHandlerMiddleware";
 import { Category, sequelize } from './models';
 
 const app = express();
@@ -27,12 +30,14 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/auth", authRoutes);
 app.use("/categories", categoryRoutes);
 app.use("/users", userRoutes);
+app.use("/posts", postRoutes);
+app.use("/users/profile", authenticate);
+app.use("/posts", likeRoutes);
+app.use("/collections", collectionRoutes);
+app.use("/", commentRoutes);
+app.use("/follows", followRoutes);
 
-// wajib auth
-app.use("/posts", authenticate, postRoutes); // create, update, dll
-app.use("/users/profile", authenticate);    // hanya user login bisa akses profil sendiri
-app.use("/collections", authenticate, collectionRoutes)
-app.use("/", authenticate, commentRoutes); // create, update, dll
+app.use(errorHandlerMiddleware);
 
 sequelize.sync().then(async () => {
   const count = await Category.count();
