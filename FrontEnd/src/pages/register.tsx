@@ -1,7 +1,7 @@
+import { Alert, Box, Button, Container, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, TextField, Button, Typography, Box, Alert } from '@mui/material';
-import { API } from '../utils/api'; // Ganti import ini
+import { API } from '../utils/api';
 
 export default function Register() {
   const [username, setUsername] = useState('');

@@ -9,10 +9,10 @@ import {
     TextField,
     Typography
 } from '@mui/material';
-import { API } from '../utils/api';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../styles/createComment.css';
+import { API } from '../utils/api';
 
 interface CommentType {
     comment_id: string;
@@ -52,7 +52,6 @@ export default function Comments() {
 
     const updatePostCommentCount = async () => {
         try {
-            // Ganti ke API yang baru
             await API.post(`/posts/${idPost}/update-comment-count`, {});
         } catch (err) {
             console.error('Error updating comment count:', err);
@@ -65,7 +64,6 @@ export default function Comments() {
             
             console.log("Fetching comments for post:", idPost);
             
-            // Ganti ke API yang baru
             const response = await API.get(`/comments/${idPost}/comments`);
             
             console.log("Comments response:", response.data);
@@ -108,18 +106,15 @@ export default function Comments() {
             
             console.log("Checking comment permissions directly");
             
-            // Ganti ke API yang baru
             const commentsResponse = await API.get(`/comments/${idPost}/comments`);
             
-            // Extract post and owner info from the response
-            const postData = commentsResponse.data.post; // Assuming this is included in the response
+            const postData = commentsResponse.data.post;
             
             if (!postData) {
                 console.error("Post data not found in comments response");
                 return;
             }
             
-            // Extract post owner ID
             let postOwnerId = null;
             if (postData.user_id) {
                 postOwnerId = postData.user_id;
@@ -135,22 +130,18 @@ export default function Comments() {
             console.log("Found post owner ID:", postOwnerId);
             console.log("Current user ID:", currentUser.user_id);
             
-            // Set post owner info
             setPostOwner({
                 user_id: String(postOwnerId),
                 username: postData.user?.username || postData.username || "Unknown"
             });
             
-            // Check if current user is post owner
             if (String(currentUser.user_id) === String(postOwnerId)) {
                 console.log("User is post owner - enabling comments");
                 setCanComment(true);
                 return;
             }
             
-            // Check mutual following
             try {
-                // Ganti ke API yang baru
                 const mutualCheckResponse = await API.get(`/follows/mutual/${postOwnerId}`);
                 
                 const hasMutual = mutualCheckResponse.data.mutualFollowing;
@@ -220,7 +211,6 @@ export default function Comments() {
                 return;
             }
 
-            // Ganti ke API yang baru
             const response = await API.post(`/comments/${idPost}/comments`, {
                 content: newComment,
                 parent_id: replyTo || null
@@ -252,7 +242,6 @@ export default function Comments() {
                 return;
             }
 
-            // Ganti ke API yang baru
             await API.put(`/comments/${idComment}`, { content: editContent });
 
             setEditingId(null);
@@ -266,7 +255,6 @@ export default function Comments() {
 
     const handleDelete = async (idComment: string) => {
         try {
-            // Ganti ke API yang baru
             await API.delete(`/comments/${idComment}`);
 
             await fetchComments();
@@ -502,7 +490,7 @@ export default function Comments() {
                             color="text.secondary" 
                             sx={{ cursor: 'pointer', fontWeight: 'bold' }}
                             onClick={() => {
-                                setReplyTo(reply.parent_id); // Reply to the parent comment, not to the reply
+                                setReplyTo(reply.parent_id);
                                 setReplyingToUser({ id: reply.comment_id, username: reply.user.username });
                                 setNewComment(`@${reply.user.username} `);
                             }}

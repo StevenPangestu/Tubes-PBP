@@ -9,11 +9,10 @@ import {
     Toolbar,
     Typography
 } from '@mui/material';
-import { API } from '../utils/api';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Collection, Post } from '../types';
-// import '../styles/viewCollections.css';
+import { API } from '../utils/api';
 
 interface CollectionWithPosts extends Collection {
     posts?: Post[];

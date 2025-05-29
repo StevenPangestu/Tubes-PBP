@@ -7,13 +7,13 @@ import {
   Stack,
   TextField, Toolbar
 } from '@mui/material';
-import { API } from '../utils/api';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PostCard from '../components/postCard';
-import { Post, User } from '../types';
-import { formatProfilePictureUrl } from '../utils/imageUtils';
 import '../styles/home.css';
+import { Post, User } from '../types';
+import { API } from '../utils/api';
+import { formatProfilePictureUrl } from '../utils/imageUtils';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -68,7 +68,7 @@ const fetchPosts = async (pageToLoad: number, searchTerm?: string) => {
     const response = await API.get(url);
 
     const data = response.data;
-    const newPosts: Post[] = data.posts ?? data; // fallback jika backend kirim langsung array
+    const newPosts: Post[] = data.posts ?? data;
     const hasMoreFromResponse = data.hasMore ?? false;
 
     setPosts(prev => {

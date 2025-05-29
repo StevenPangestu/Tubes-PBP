@@ -1,8 +1,8 @@
 import { Alert, Box, Button, Container, TextField, Typography } from '@mui/material';
-import { API } from '../utils/api'; // Ganti import ini
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/createCollection.css';
+import { API } from '../utils/api'; // Ganti import ini
 
 export default function CreateCollection() {
     const [title, setTitle] = useState('');
@@ -31,7 +31,6 @@ export default function CreateCollection() {
         try {
             console.log('Sending request with data:', { collection_name: title.trim() });
             
-            // Ganti ke API yang baru - auto token & baseURL!
             const response = await API.post(
                 '/collections',
                 {

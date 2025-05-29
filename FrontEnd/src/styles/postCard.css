@@ -151,7 +151,6 @@
   letter-spacing: .5px;
 }
 
-/* Bookmark & Collection Dialog */
 .MuiButton-outlined {
   border-color: #e0e0e0;
 }
@@ -161,7 +160,6 @@
   background-color: rgba(25, 118, 210, 0.04);
 }
 
-/* Snackbar position fix */
 .MuiSnackbar-root {
   position: fixed !important;
   bottom: 24px !important;
@@ -172,7 +170,6 @@
   min-width: 288px !important;
 }
 
-/* Alert styling inside snackbar */
 .MuiAlert-root {
   width: 100%;
   display: flex;

@@ -92,7 +92,6 @@
     padding: 4px 0;
 }
 
-/* Instagram-style reply link */
 .reply-link {
     color: #8e8e8e;
     font-weight: 600;
@@ -104,7 +103,6 @@
     color: #262626;
 }
 
-/* Show more replies button */
 .view-replies-button {
     color: #8e8e8e;
     font-weight: 600;
@@ -118,8 +116,6 @@
 .view-replies-button:hover {
     color: #262626;
 }
-
-/* Added to handle the collapsed state of replies */
 .replies-collapsed {
     display: none;
 }
