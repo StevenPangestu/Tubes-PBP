@@ -110,53 +110,6 @@ export default function Comments() {
         }
     };
 
-    const getPostDetailsWithFallback = async () => {
-        try {
-            console.log("Attempting to get post details with multiple fallbacks");
-            
-            try {
-                const response = await axios.get(
-                    `http://localhost:3000/posts/detail/${idPost}`,
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-                console.log("Got post details from primary endpoint");
-                return response.data;
-            } catch (err) {
-                console.log("Primary post details endpoint failed, trying fallback");
-            }
-            
-            try {
-                const response = await axios.get(
-                    `http://localhost:3000/comments/${idPost}/comments`,
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-                if (response.data && response.data.post) {
-                    console.log("Got post details from comments endpoint");
-                    return response.data.post;
-                }
-            } catch (err) {
-                console.log("Comments endpoint fallback failed");
-            }
-            
-            try {
-                const response = await axios.get(
-                    `http://localhost:3000/posts/detail/${idPost}`,
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-                console.log("Got post details from detail endpoint");
-                return response.data;
-            } catch (err) {
-                console.log("Detail endpoint fallback failed");
-            }
-            
-            console.error("All post detail endpoints failed");
-            return null;
-        } catch (err) {
-            console.error("Error in getPostDetailsWithFallback:", err);
-            return null;
-        }
-    };
-
     const checkCommentPermissions = async () => {
     try {
         if (!token || !idPost) return;
