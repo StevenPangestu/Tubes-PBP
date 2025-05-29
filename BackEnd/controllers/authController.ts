@@ -18,17 +18,24 @@ export const register = async (req: Request, res: Response) => {
     throw new Error("Password must be at least 6 characters long");
   }
 
-  // Validasi email format basic
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     res.locals.errorCode = 400;
     throw new Error("Invalid email format");
   }
 
-  const existing = await User.findOne({ where: { email } });
-  if (existing) {
+  // Cek apakah email sudah dipakai
+  const existingEmail = await User.findOne({ where: { email } });
+  if (existingEmail) {
     res.locals.errorCode = 400;
     throw new Error("Email already registered");
+  }
+
+  // Cek apakah username sudah dipakai
+  const existingUsername = await User.findOne({ where: { username } });
+  if (existingUsername) {
+    res.locals.errorCode = 400;
+    throw new Error("Username already taken");
   }
 
   const user = await User.create({
@@ -51,7 +58,6 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  // Validasi input
   if (!email || !password) {
     res.locals.errorCode = 400;
     throw new Error("Email and password are required");

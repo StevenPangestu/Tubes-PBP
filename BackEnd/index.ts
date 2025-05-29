@@ -34,7 +34,7 @@ app.use("/posts", postRoutes);
 app.use("/users/profile", authenticate);
 app.use("/posts", likeRoutes);
 app.use("/collections", collectionRoutes);
-app.use("/", commentRoutes);
+app.use("/comments", commentRoutes);
 app.use("/follows", followRoutes);
 
 app.use(errorHandlerMiddleware);

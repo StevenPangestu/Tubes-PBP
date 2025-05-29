@@ -171,7 +171,7 @@ const Home = () => {
                   sx={{ color: '#ff5700' }}
                 >
                   <Add />
-                </IconButton>                <IconButton onClick={() => navigate(`/profile/${user.username}`)}>
+                </IconButton>                <IconButton onClick={() => navigate(`/profile`)}>
                   <Avatar
                     src={formatProfilePictureUrl(user.profile_picture, '/default-avatar.png')}
                     alt={user.username}
