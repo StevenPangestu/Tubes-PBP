@@ -29,7 +29,7 @@ export default function CreateCollection() {
         }
 
         try {
-            console.log('Sending request with data:', { collection_name: title.trim() }); // Debug log
+            console.log('Sending request with data:', { collection_name: title.trim() });
             
             // Ganti ke API yang baru - auto token & baseURL!
             const response = await API.post(
@@ -39,7 +39,7 @@ export default function CreateCollection() {
                 }
             );
 
-            console.log('Server response:', response.data); // Debug log
+            console.log('Server response:', response.data);
 
             if (response.status === 201 && response.data) {
                 setMessage('Collection created successfully!');

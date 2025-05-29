@@ -80,7 +80,7 @@ export default function ViewEachCollections() {
                             <Box sx={{ 
                                 mt: 2, 
                                 display: 'grid',
-                                gridTemplateColumns: 'repeat(2, 1fr)', // Change to grid layout with 2 columns
+                                gridTemplateColumns: 'repeat(2, 1fr)',
                                 gap: 2,
                                 maxWidth: '100%',
                                 margin: '0 auto',
@@ -142,7 +142,7 @@ export default function ViewEachCollections() {
                                         </Paper>
                                     ))
                                 ) : (
-                                    <Alert severity="info" sx={{ gridColumn: '1 / -1' }}> {/* Span alert across both columns */}
+                                    <Alert severity="info" sx={{ gridColumn: '1 / -1' }}>
                                         No posts in this collection yet
                                     </Alert>
                                 )}

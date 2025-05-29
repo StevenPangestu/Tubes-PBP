@@ -7,9 +7,6 @@ export const createComment = async (req: Request, res: Response) => {
   const { idPost } = req.params;
   const { content, parent_id } = req.body;
 
-  console.log("Creating comment for post:", idPost);
-  console.log("Current user:", user.user_id);
-
   if (!content || !content.trim()) {
     res.locals.errorCode = 400;
     throw new Error("Comment content is required");
@@ -25,26 +22,20 @@ export const createComment = async (req: Request, res: Response) => {
   }
 
   const postOwnerId = post.user_id;
-  console.log("Post owner ID:", postOwnerId);
-  console.log("Is user the post owner?", user.user_id === postOwnerId);
 
-  // Allow comments if the user is the post owner
   if (user.user_id !== postOwnerId) {
-    // User is not the post owner, check for mutual following
-    console.log("User is not post owner, checking mutual following");
 
-    // Check if mutual following exists between the users
     const userFollowsPostOwner = await Follow.findOne({
       where: {
         follower_id: user.user_id,
-        following_id: postOwnerId  // Changed from followed_id to following_id
+        following_id: postOwnerId
       }
     });
 
     const postOwnerFollowsUser = await Follow.findOne({
       where: {
         follower_id: postOwnerId,
-        following_id: user.user_id  // Changed from followed_id to following_id
+        following_id: user.user_id
       }
     });
 
@@ -52,8 +43,6 @@ export const createComment = async (req: Request, res: Response) => {
       res.locals.errorCode = 403;
       throw new Error("You can only comment when there is mutual following (you both follow each other)");
     }
-  } else {
-    console.log("User is post owner, allowing comment");
   }
 
   const comment = await Comment.create({
@@ -111,7 +100,6 @@ export const getPostComments = async (req: Request, res: Response) => {
     .filter(comment => comment.parent_id !== null)
     .map(comment => comment.toJSON());
 
-  // Group replies by their parent comment
   const commentTree = rootComments.map(rootComment => {
     const commentReplies = replies.filter(reply =>
       reply.parent_id === rootComment.comment_id

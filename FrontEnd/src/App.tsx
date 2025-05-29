@@ -19,21 +19,18 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/home" element={<Home />} />
 
-        {/* Add new routes for collections, melihat semua collections */}
         <Route path="/collections" element ={
           <PrivateRoute>
             <ViewCollections />
           </PrivateRoute>
         } />
 
-        {/* melihat collection tertentu */}
         <Route path="/collections/:collectionId" element={
           <PrivateRoute>
             <ViewEachCollections />
           </PrivateRoute>
         } />
 
-        {/* Add new route for creating a collection */}
 
         <Route path="/collections/create" element={
           <PrivateRoute>
@@ -47,7 +44,6 @@ function App() {
           </PrivateRoute>
         } />
 
-        {/* Add new routes for comments */}
         <Route path="/posts/:idPost/comments" element={
           <PrivateRoute>
             <Comments />

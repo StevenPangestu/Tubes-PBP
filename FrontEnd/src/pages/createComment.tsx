@@ -70,13 +70,11 @@ export default function Comments() {
             
             console.log("Comments response:", response.data);
             
-            // Check if the response format is different than expected
             if (Array.isArray(response.data)) {
                 setComments(response.data);
             } else if (response.data.comments && Array.isArray(response.data.comments)) {
                 setComments(response.data.comments);
                 
-                // If post data is included in the response, use it to determine permissions
                 if (response.data.post) {
                     const postData = response.data.post;
                     setPostOwner({
@@ -167,7 +165,6 @@ export default function Comments() {
         }
     };
 
-    // Update useEffect to call this function
     useEffect(() => {
         const initData = async () => {
             if (!token || !idPost) {
@@ -215,11 +212,9 @@ export default function Comments() {
             console.log("Current user ID:", String(currentUser.user_id));
             console.log("Post owner ID:", String(postOwner?.user_id));
             
-            // Convert both to string for reliable comparison
             const isPostOwner = String(currentUser.user_id) === String(postOwner?.user_id);
             console.log("Is post owner:", isPostOwner);
             
-            // Allow comment if user is post owner OR if mutual following was detected
             if (!canComment && !isPostOwner) {
                 setError('You can only comment if there is mutual following with the post owner');
                 return;
@@ -445,7 +440,6 @@ export default function Comments() {
                 </Box>
             )}
 
-            {/* Show replies toggle button if there are replies */}
             {comment.replies && comment.replies.length > 0 && (
                 <Box sx={{ ml: 5, mt: 1, pl: 2 }}>
                     <Typography 
@@ -467,7 +461,6 @@ export default function Comments() {
                 </Box>
             )}
 
-            {/* Render nested replies in a simplified manner */}
             {comment.replies && comment.replies.length > 0 && expandedComments[comment.comment_id] && (
                 <Box className="replies-container" sx={{ ml: 5, pl: 2 }}>
                     {comment.replies.map(reply => renderReply(reply))}
